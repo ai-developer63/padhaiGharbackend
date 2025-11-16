@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{base::Layout(~{::section})}">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+<body>
+
+<section class="container py-5">
+    <h2 class="text-center fs-3 mt-3">Admin Dashboard</h2>
+
+    <!-- Stats row -->
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm p-3">
+                <h5>Total Users</h5>
+                <p class="fs-3 text-primary" th:text="${totalUsers}">0</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm p-3">
+                <h5>Total Nepali User</h5>
+                <p class="fs-3 text-success" th:text="${totalNepaliUsers}">0</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm p-3">
+                <h5>Pending Purchase Request</h5>
+                <p class="fs-3 text-warning" th:text="${pendingPurchaseRequests}">0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- General Management -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <a href="#" class="text-decoration-none">
+                <div class="card card-sh h-100 text-center shadow-sm hover-scale p-3">
+                    <i class="fa-solid fa-plus fa-2x text-primary mb-2"></i>
+                    <h6 class="fw-bold">Add Banner</h6>
+                    <p class="small text-muted mb-0">Add Offer Banners for Users</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            <a href="#" class="text-decoration-none">
+                <div class="card card-sh h-100 text-center shadow-sm hover-scale p-3">
+                    <i class="fa-solid fa-layer-group fa-2x text-success mb-2"></i>
+                    <h6 class="fw-bold">Categories</h6>
+                    <p class="small text-muted mb-0">Manage all categories</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            <a href="#" class="text-decoration-none">
+                <div class="card card-sh h-100 text-center shadow-sm hover-scale p-3">
+                    <i class="fa-solid fa-video fa-2x text-warning mb-2"></i>
+                    <h6 class="fw-bold">Home Videos</h6>
+                    <p class="small text-muted mb-0">Manage all the App tutorial Videos</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            <a href="/admin/allusers" class="text-decoration-none">
+                <div class="card card-sh h-100 text-center shadow-sm hover-scale p-3">
+                    <i class="fa-solid fa-users fa-2x text-danger mb-2"></i>
+                    <h6 class="fw-bold">Users</h6>
+                    <p class="small text-muted mb-0">Manage user accounts</p>
+                </div>
+            </a>
+        </div>
+    </div>
+  <div class="row g-4 mb-5">
+  
+  <div class="col-md-3">
+    <a href="#" class="text-decoration-none">
+        <div class="card card-sh h-100 text-center shadow-sm hover-scale p-3">
+            <i class="fa-solid fa-user-plus fa-2x text-success mb-2"></i>
+            <h6 class="fw-bold">User Promote</h6>
+            <p class="small text-muted mb-0">Promote users to Teacher, Affiliate, or other roles</p>
+        </div>
+    </a>
+</div>
+  <div class="col-md-3">
+    <a href="#" class="text-decoration-none">
+        <div class="card card-sh h-100 text-center shadow-sm hover-scale p-3">
+            <i class="fa-solid fa-share-nodes fa-2x text-primary mb-2"></i>
+            <h6 class="fw-bold">Share Video</h6>
+            <p class="small text-muted mb-0">Upload videos and share securely with a generated code</p>
+        </div>
+    </a>
+</div>
+  
+  
+  </div>
+
+</section>
+
+</body>
+</html>

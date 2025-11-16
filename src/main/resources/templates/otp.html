@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeLeaf.org"
+	th:replace="~{base::Layout(~{::section})}">
+<head>
+<meta charset="UTF-8">
+<title>Forget Password</title>
+</head>
+<body>
+<section class="container mt-5 p-5">
+    <!-- Bootstrap CSS included here to be self-contained -->
+  <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .form-card {
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .disabled-link {
+            pointer-events: none;
+            color: #adb5bd !important;
+        }
+    </style>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card p-4 p-md-5 form-card">
+                <div class="card-body">
+                    <div class="text-center">
+                        <h2 class="card-title fw-bold">Enter OTP</h2>
+                        <p class="card-text text-muted mt-2">
+                            We've sent a one-time password to your email. Please enter it below to proceed.
+                        </p>
+                        	<!-- Success Message -->
+								<th:block th:if="${succMsg}">
+									<p class="text-success fw-bold text-center mt-3">[[${succMsg}]]</p>
+								</th:block>
+
+								<!-- Error Message -->
+								<th:block th:if="${errorMsg}">
+									<p class="text-danger text-center fw-bold mt-3">[[${errorMsg}]]</p>
+								</th:block>
+								<p id="resend-message" style="color: green;"></p>
+                    </div>
+                    <form class="mt-4" action="/verify" method="POST">
+                        <div class="mb-3">
+                            <label for="otp" class="form-label fw-bold">One-Time Password (OTP)</label>
+                            <input type="text" class="form-control text-center" id="otp" name="otp" placeholder="Enter OTP" required>
+                        </div>
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Verify OTP</button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-4">
+                        <p id="countdown-message" class="text-muted"></p>
+                        <p class="text-muted">Didn't receive the OTP?
+                            <a href="#" id="resend-link" class="text-decoration-none disabled-link" aria-disabled="true">Resend OTP</a>
+                        </p>
+                        <p class="text-muted">
+                            <a href="/forgotpassword" class="text-decoration-none">Go back</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+
+<script>
+document.getElementById("resend-link").addEventListener("click", function(e) {
+    e.preventDefault();
+
+    fetch("/resend-otp", {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const msgEl = document.getElementById("resend-message");
+        if (data.success) {
+            msgEl.style.color = "green";
+        } else {
+            msgEl.style.color = "red";
+        }
+        msgEl.textContent = data.message;
+    })
+    .catch(err => console.error("Error:", err));
+});
+</script>
+    
+    
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const countdownMessage = document.getElementById('countdown-message');
+            const resendLink = document.getElementById('resend-link');
+            let countdownInterval;
+            let timeLeft = 60;
+
+            function startCountdown() {
+                clearInterval(countdownInterval); // Clear any existing timer
+                timeLeft = 60;
+                resendLink.classList.add('disabled-link');
+                resendLink.setAttribute('aria-disabled', 'true');
+
+                countdownInterval = setInterval(() => {
+                    countdownMessage.textContent = `You can resend OTP in ${timeLeft} seconds.`;
+                    timeLeft--;
+
+                    if (timeLeft < 0) {
+                        clearInterval(countdownInterval);
+                        countdownMessage.textContent = "";
+                        resendLink.classList.remove('disabled-link');
+                        resendLink.removeAttribute('aria-disabled');
+                    }
+                }, 1000);
+            }
+
+            // Start the countdown on initial page load
+            startCountdown();
+
+            // Restart the countdown when the resend link is clicked
+            resendLink.addEventListener('click', (event) => {
+                event.preventDefault(); // Prevent the link from navigating
+                startCountdown();
+            });
+        });
+    </script>
+</section>
+</body>
+</html>
