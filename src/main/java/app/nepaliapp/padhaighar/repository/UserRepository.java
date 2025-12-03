@@ -1,5 +1,7 @@
 package app.nepaliapp.padhaighar.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -18,4 +20,6 @@ public interface UserRepository extends JpaRepository<UserModel, Long> {
 	@Query("UPDATE UserModel u SET u.deviceID = :deviceID WHERE u.id = :userId")
 	int updateDeviceIdByUserId(@Param("userId") Long userId, @Param("deviceID") String deviceID);
 	long countBycountry(String string);
+	
+	List<UserModel> findByRole(String role);
 }

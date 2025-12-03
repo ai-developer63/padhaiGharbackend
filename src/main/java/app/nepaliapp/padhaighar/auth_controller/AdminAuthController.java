@@ -59,10 +59,10 @@ public class AdminAuthController {
 		 long totalUsers = userRepository.count();
 	        long totalNepaliUsers = userRepository.countBycountry("Nepal");
 	        long pendingPurchaseRequests = 15;
-
-	      model.addAttribute("totalUsers", totalUsers);
+	        model.addAttribute("totalUsers", totalUsers);
 	        model.addAttribute("totalNepaliUsers", totalNepaliUsers);
 	        model.addAttribute("pendingPurchaseRequests", pendingPurchaseRequests);
+	       
 		IsLoggedInProof(model);
 		return "admin/dashboard";
 	}
@@ -284,6 +284,7 @@ public class AdminAuthController {
 	private Model IsLoggedInProof(Model model) {
 		Boolean isLoggedIn = commonServiceImp.checkIsloggedin();
 		model.addAttribute("isLoggedIn", isLoggedIn);
+		 model.addAttribute("isAdmin",true);
 		return model;
 	}
 

@@ -16,6 +16,7 @@ import org.springframework.util.StringUtils;
 import app.nepaliapp.padhaighar.cache.TimedCache;
 import app.nepaliapp.padhaighar.cache.TimedCacheManager;
 import app.nepaliapp.padhaighar.model.UserModel;
+import app.nepaliapp.padhaighar.model.dto.TeacherModels;
 import app.nepaliapp.padhaighar.repository.UserRepository;
 import app.nepaliapp.padhaighar.service.UserService;
 
@@ -35,8 +36,23 @@ public class UserServiceImp implements UserService {
 	  TimedCache<String, UserModel> userCache = manager.getOrCreateCache(USER_CACHE, 1000);
 	  
 	  
-	  
 
+
+
+		@Override
+		public List<TeacherModels> getAllTeachers() {
+			List<UserModel> byRole = userRepository.findByRole("ROLE_TEACHER");
+
+		    List<TeacherModels> allteacher = byRole.stream()
+		            .map(u -> new TeacherModels(u.getName(), u.getId()))
+		            .toList();
+		    return allteacher;
+		}
+
+
+		
+		
+		
 	  @Override
 	    public Page<UserModel> getFilteredUsers(String lastActive, String country, String refer, Pageable pageable) {
 	        List<UserModel> all = userRepository.findAll();
@@ -110,11 +126,59 @@ public class UserServiceImp implements UserService {
 	}
 
 
-	@Override
-	public Boolean updateUserDeviceId(UserModel user, String deviceID) {
-		  int updatedRows = userRepository.updateDeviceIdByUserId(user.getId(), deviceID);
-		    return updatedRows > 0;
-	}
+	 @Override
+	    public Boolean updateUserDeviceId(UserModel user, String deviceID) {
+	        int updatedRows = userRepository.updateDeviceIdByUserId(user.getId(), deviceID);
+
+	        if (updatedRows > 0) {
+	            // Fetch updated user from DB
+	            UserModel updatedUser = userRepository.findById(user.getId()).get();
+	            refreshUserCache(updatedUser);
+	        }
+
+	        return updatedRows > 0;
+	    }
+	
+	
+	 @Transactional
+	 @Override
+	 public UserModel updateUser(UserModel user) {
+	     UserModel updated = userRepository.save(user);
+
+	     // update cache: email and phone both may be used as keys
+	     if (user.getEmailId() != null) {
+	         userCache.put(user.getEmailId(), updated);
+	     }
+	     if (user.getPhoneNumber() != null) {
+	         userCache.put(user.getPhoneNumber(), updated);
+	     }
+
+	     return updated;
+	 }
+
+	 
+	 @Override
+	 public UserModel getUserById(Long id) {
+	     return userRepository.findById(id)
+	             .orElseThrow(() -> new RuntimeException("User not found"));
+	 }
+
+
+
+    // ----------------------------
+    //  CLEAN CACHE HELPERS
+    // ----------------------------
+    private void refreshUserCache(UserModel user) {
+        if (user.getEmailId() != null) {
+            userCache.remove(user.getEmailId());
+            userCache.put(user.getEmailId(), user);
+        }
+
+        if (user.getPhoneNumber() != null) {
+            userCache.remove(user.getPhoneNumber());
+            userCache.put(user.getPhoneNumber(), user);
+        }
+    }
 
 
 

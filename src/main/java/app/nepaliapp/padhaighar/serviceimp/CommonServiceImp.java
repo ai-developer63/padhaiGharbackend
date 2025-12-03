@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.Model;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -72,6 +73,14 @@ public class CommonServiceImp implements CommonService {
 	public String otpGenerator() {
 	    int otp = ThreadLocalRandom.current().nextInt(10000, 100000);
         return String.valueOf(otp);
+	}
+
+	@Override
+	public Model modelForAuth(Model model) {
+		Boolean isLoggedIn = checkIsloggedin();
+		model.addAttribute("isLoggedIn", isLoggedIn);
+		model.addAttribute("isAdmin", true);
+		return model;
 	}
 
 }

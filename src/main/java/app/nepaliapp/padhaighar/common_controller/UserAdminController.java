@@ -7,9 +7,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import app.nepaliapp.padhaighar.cache.TimedCache;
+import app.nepaliapp.padhaighar.cache.TimedCacheManager;
 import app.nepaliapp.padhaighar.model.UserModel;
 import app.nepaliapp.padhaighar.service.UserService;
 import app.nepaliapp.padhaighar.serviceimp.CommonServiceImp;
@@ -17,14 +21,59 @@ import app.nepaliapp.padhaighar.serviceimp.CommonServiceImp;
 
 
 @Controller
-@RequestMapping("/admin/")
+@RequestMapping("/admin")
 public class UserAdminController {
 	@Autowired
 	CommonServiceImp commonServiceImp;
 	@Autowired
 	UserService userService;
+	
+	private static final String USER_CACHE = "userCache";
 
-	 @GetMapping("allusers")
+	TimedCacheManager manager = TimedCacheManager.getInstance();
+	  TimedCache<String, UserModel> userCache = manager.getOrCreateCache(USER_CACHE, 1000);
+	  
+	  
+	
+	
+	   // Page for search UI
+    @GetMapping("/manage")
+    public String manageUserPage(Model model) {
+    	commonServiceImp.modelForAuth(model);
+        return "admin/user-manage";
+    }
+
+    // API: Search user
+    @GetMapping("/search")
+    @ResponseBody
+    public UserModel searchUser(@RequestParam("query") String query) {
+    	System.err.println(query);
+        return userService.getUserByPhoneorEmail(query);
+    }
+
+    // API: Update role
+    @PostMapping("/update-role")
+    @ResponseBody
+    public String updateRole(@RequestParam("id") Long id,
+                             @RequestParam("role") String role) {
+    	UserModel user = userService.getUserById(id);
+    	String role2 = user.getRole();
+    	if (role2.equals("ROLE_ADMIN")) {
+			return"ooo Admin is immortal";
+		}else {
+    	 user.setRole(role);
+        userService.updateUser(user);
+        return "success";
+		}
+		}
+	
+	
+	
+	
+	
+	
+
+	 @GetMapping("/allusers")
 	    public String getUsers(
 	            @RequestParam(name="lastActive",required = false) String lastActive,
 	            @RequestParam(name="country",required = false) String country,
@@ -42,16 +91,10 @@ public class UserAdminController {
 	        model.addAttribute("lastActive", lastActive);
 	        model.addAttribute("country", country);
 	        model.addAttribute("refer", refer);
-	        IsLoggedInProof(model);
+	        commonServiceImp.modelForAuth(model);
 
 	        return "admin/users"; 
 	    }
 	
-	private Model IsLoggedInProof(Model model) {
-		Boolean isLoggedIn = commonServiceImp.checkIsloggedin();
-		model.addAttribute("isLoggedIn", isLoggedIn);
-		model.addAttribute("isAdmin", true);
-		return model;
-	}
 	
 }
