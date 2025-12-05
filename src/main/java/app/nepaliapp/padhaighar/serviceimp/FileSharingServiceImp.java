@@ -18,6 +18,18 @@ public class FileSharingServiceImp implements FileSharingService {
 	String uploadLocation;
 	
 	
+	@Override
+	public Resource getCategoryIcon(String filename) throws IOException {
+		 Path uploadPath = Paths.get(uploadLocation, "category").toAbsolutePath().normalize();
+
+			String uploadLocations = uploadPath.toString();
+			Path filePath = Paths.get(uploadLocations).resolve(filename).normalize();
+			try {
+				return getResourceByPath(filePath);
+			}catch (IOException e) {
+				throw new IOException("File not found or unreadable:"+filePath);
+			}
+	}
 	
 	@Override
 	public Resource getBannerImage(String filename) throws IOException {

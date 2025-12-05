@@ -11,5 +11,7 @@ public interface CommonService {
 	public String otpGenerator(); 
 	
 	public Model modelForAuth(Model model);
+	String buildUrlString(String folderPath, String fileName);
+	
 	
 }

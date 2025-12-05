@@ -33,4 +33,5 @@ public class CourseModel {
     String searchTags;
     String Price;
     Boolean isActive;
+    String discount;
 }

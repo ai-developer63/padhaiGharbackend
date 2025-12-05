@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -22,9 +21,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import app.nepaliapp.padhaighar.model.BannerModel;
-import app.nepaliapp.padhaighar.model.CourseModel;
 import app.nepaliapp.padhaighar.serviceimp.BannerServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.CommonServiceImp;
 
@@ -44,7 +41,7 @@ public class BannerController {
 	// Page
 	@GetMapping("/manage")
 	public String manageBannersPage(@RequestParam(name = "page", defaultValue = "0") int page,
-			@RequestParam(name = "size", defaultValue = "5") int size, Model model) {
+			@RequestParam(name = "size", defaultValue = "10") int size, Model model) {
 
 		Pageable pageable = PageRequest.of(page, size);
 		Page<BannerModel> bannersPage = bannerService.getBannersPage(pageable);

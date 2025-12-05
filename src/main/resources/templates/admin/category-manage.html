@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base::Layout(~{::section})}">
+<head>
+<meta charset="UTF-8">
+<title>Category Management</title>
+</head>
+<body>
+<section class="container mt-5 pt-4">
+
+    <div class="card shadow-lg p-4 mb-4">
+        <h4><i class="fa-solid fa-layer-group text-primary"></i> Add Category</h4>
+
+        <div id="notification" class="alert d-none mt-3"></div>
+
+        <form id="categoryForm" class="row g-3">
+            <div class="col-md-4">
+                <label>Name</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+
+            <div class="col-md-4">
+                <label>Logo Image</label>
+                <input type="file" name="logoFile" class="form-control" required>
+            </div>
+
+            <div class="col-md-2 form-check mt-4">
+                <input type="checkbox" name="isEnable" class="form-check-input" checked>
+                <label class="form-check-label">Enable</label>
+            </div>
+
+            <div class="col-md-2 mt-4">
+                <button class="btn btn-success w-100">Save</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- TABLE -->
+    <div class="card shadow-lg p-4">
+        <h4><i class="fa-solid fa-list text-primary"></i> Category List</h4>
+
+        <table class="table table-hover mt-3">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Logo</th>
+                    <th>Enable</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody id="categoryTable">
+                <tr th:each="c : ${categories}" th:data-id="${c.id}">
+                    <td th:text="${c.id}"></td>
+                    <td th:text="${c.name}"></td>
+
+                    <td>
+                        <img th:src="@{'/categories/' + ${c.logo}}"
+                             class="img-thumbnail cat-thumb"
+                             style="width:80px;cursor:pointer;">
+                    </td>
+
+                    <td>
+                        <input type="checkbox"
+                               class="toggle-enable"
+                               th:checked="${c.isEnable}">
+                    </td>
+
+                    <td>
+                        <button class="btn btn-danger btn-sm delete-cat">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- IMAGE MODAL -->
+    <div class="modal fade" id="imageModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-body p-0 text-center">
+            <img id="modalImage" class="img-fluid">
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+<script>
+function notify(msg, type="success") {
+    const n = document.getElementById("notification");
+    n.className = `alert alert-${type}`;
+    n.innerText = msg;
+    n.classList.remove("d-none");
+    setTimeout(() => n.classList.add("d-none"), 3000);
+}
+
+document.getElementById("categoryForm").addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    let data = new FormData(e.target);
+
+    try {
+        const res = await axios.post("/admin/category/save", data);
+        location.reload();
+    } catch {
+        notify("Failed to save category", "danger");
+    }
+});
+
+// Toggle enable
+document.getElementById("categoryTable").addEventListener("change", async (e)=>{
+    if(e.target.classList.contains("toggle-enable")){
+        const id = e.target.closest("tr").dataset.id;
+        await axios.post("/admin/category/toggle", null, { params:{id}});
+        notify("Category updated!");
+    }
+});
+
+// Delete
+document.getElementById("categoryTable").addEventListener("click", async (e)=>{
+    if(e.target.closest(".delete-cat")){
+        if(!confirm("Delete this category?")) return;
+
+        const row = e.target.closest("tr");
+        const id = row.dataset.id;
+
+        try{
+            await axios.post("/admin/category/delete", null, {params:{id}});
+            row.remove();
+            notify("Deleted!");
+        }catch{
+            notify("Delete failed", "danger");
+        }
+    }
+});
+
+// Logo preview
+document.getElementById("categoryTable").addEventListener("click",(e)=>{
+    if(e.target.classList.contains("cat-thumb")){
+        document.getElementById("modalImage").src = e.target.src;
+        new bootstrap.Modal(document.getElementById("imageModal")).show();
+    }
+});
+</script>
+</section>
+</body>
+</html>

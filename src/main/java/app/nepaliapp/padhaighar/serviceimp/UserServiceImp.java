@@ -34,9 +34,40 @@ public class UserServiceImp implements UserService {
 
 	TimedCacheManager manager = TimedCacheManager.getInstance();
 	  TimedCache<String, UserModel> userCache = manager.getOrCreateCache(USER_CACHE, 1000);
+	 
 	  
+	  private static final String TEACHER_CACHE = "teacherCache";
+	  TimedCache<String, UserModel> teacherCache = manager.getOrCreateCache(TEACHER_CACHE, 1000);
+
 	  
 
+	  @Override
+	  public UserModel getTeacherById(Long id) {
+
+	      // 1. Check teacher cache using key: "teacher:{id}"
+	      String key = "teacher:" + id;
+	      UserModel cachedTeacher = teacherCache.get(key);
+	      if (cachedTeacher != null) {
+	          return cachedTeacher;
+	      }
+
+	      // 2. Fetch from DB
+	      UserModel teacher = userRepository.findById(id)
+	              .orElseThrow(() -> new RuntimeException("Teacher not found"));
+
+	      // 3. Validate role
+	      if (!"ROLE_TEACHER".equalsIgnoreCase(teacher.getRole())) {
+	          throw new RuntimeException("User is not a teacher");
+	      }
+
+	      // 4. Cache result
+	      teacherCache.put(key, teacher);
+
+	      return teacher;
+	  }
+
+	  
+	  
 
 
 		@Override

@@ -20,9 +20,9 @@ public class CategoryModel {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	Long id;
-	
+	Long id;	
 	String name;
 	String logo;
+	Boolean isEnable;
 	
 }

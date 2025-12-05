@@ -18,4 +18,5 @@ public interface UserService {
 	 Page<UserModel> getFilteredUsers(String lastActive, String country, String refer, Pageable pageable);
 	 UserModel updateUser(UserModel user);
 	 UserModel getUserById(Long id);
+	 UserModel getTeacherById(Long id);
 }

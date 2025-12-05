@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import app.nepaliapp.padhaighar.service.CommonService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,8 @@ public class CommonServiceImp implements CommonService {
 
 	@Autowired
 	private JavaMailSender mailSender;
+
+	
 
 	@Override
 	public void removeSessionMessage() {
@@ -42,37 +45,37 @@ public class CommonServiceImp implements CommonService {
 
 	@Override
 	public boolean sendEmail(String to, String subject, String text) {
-	    try {
-	        SimpleMailMessage message = new SimpleMailMessage();
-	        message.setFrom("Subhakhar Software <subhakharsoftware@gmail.com>");
-	        message.setTo(to);
-	        message.setSubject(subject);
-	        message.setText(text);
-	        mailSender.send(message);
-	        return true; 
-	    } catch (MailException e) {
-	        return false; 
-	    }
+		try {
+			SimpleMailMessage message = new SimpleMailMessage();
+			message.setFrom("Subhakhar Software <subhakharsoftware@gmail.com>");
+			message.setTo(to);
+			message.setSubject(subject);
+			message.setText(text);
+			mailSender.send(message);
+			return true;
+		} catch (MailException e) {
+			return false;
+		}
 	}
 
 	@Override
 	public String formateTextForOTPSend(String userName, String otp) {
-	    StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder();
 
-	    sb.append("Hello ").append(userName).append(",\n\n");
-	    sb.append("Your OTP code for password reset is: ").append(otp).append("\n\n");
-	    sb.append("This code is valid for 10 minutes.\n\n");
-	    sb.append("If you did not request a password reset, please ignore this email.\n\n");
-	    sb.append("Thanks,\n");
-	    sb.append("Subhakhar Software");
+		sb.append("Hello ").append(userName).append(",\n\n");
+		sb.append("Your OTP code for password reset is: ").append(otp).append("\n\n");
+		sb.append("This code is valid for 10 minutes.\n\n");
+		sb.append("If you did not request a password reset, please ignore this email.\n\n");
+		sb.append("Thanks,\n");
+		sb.append("Subhakhar Software");
 
-	    return sb.toString();
+		return sb.toString();
 	}
 
 	@Override
 	public String otpGenerator() {
-	    int otp = ThreadLocalRandom.current().nextInt(10000, 100000);
-        return String.valueOf(otp);
+		int otp = ThreadLocalRandom.current().nextInt(10000, 100000);
+		return String.valueOf(otp);
 	}
 
 	@Override
@@ -81,6 +84,12 @@ public class CommonServiceImp implements CommonService {
 		model.addAttribute("isLoggedIn", isLoggedIn);
 		model.addAttribute("isAdmin", true);
 		return model;
+	}
+
+	@Override
+	public String buildUrlString(String folderPath, String fileName) {
+		return ServletUriComponentsBuilder.fromCurrentContextPath().scheme("https") // auto force https
+				.path("/").path(folderPath.endsWith("/") ? folderPath : folderPath + "/").path(fileName).toUriString();
 	}
 
 }
