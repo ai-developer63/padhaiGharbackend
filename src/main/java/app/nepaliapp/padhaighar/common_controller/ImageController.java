@@ -20,10 +20,59 @@ public class ImageController {
 	FileSharingServiceImp fileServingServiceImp;
 	
 	
+	
+	
+	@GetMapping("/course/{filename}")
+	public ResponseEntity<Resource> ServeCourseThumnail(@PathVariable("filename") String filename) {
+	    try {
+	        Resource resource = fileServingServiceImp.getFile("coursesthumbnail",filename);
+	        String contentType;
+	        try {
+	            contentType = Files.probeContentType(resource.getFile().toPath());
+	        } catch (IOException ex) {
+	            contentType = null;
+	        }
+
+	        if (contentType == null) {
+	            String name = resource.getFilename().toLowerCase();
+	            if (name.endsWith(".png")) {
+	                contentType = "image/png";
+	            } else if (name.endsWith(".jpg") || name.endsWith(".jpeg")) {
+	                contentType = "image/jpeg";
+	            } else if (name.endsWith(".gif")) {
+	                contentType = "image/gif";
+	            } else if (name.endsWith(".svg")) {
+	                contentType = "image/svg+xml";
+	            } else if (name.endsWith(".webp")) {
+	                contentType = "image/webp";
+	            } else {
+	                contentType = "application/octet-stream"; // fallback for unknowns
+	            }
+	        }
+
+
+	        return ResponseEntity.ok()
+	                .contentType(MediaType.parseMediaType(contentType))
+	                .body(resource);
+
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+	    }
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	@GetMapping("/categories/{filename}")
 	public ResponseEntity<Resource> serverCategoryIcon(@PathVariable("filename") String filename) {
 	    try {
-	        Resource resource = fileServingServiceImp.getCategoryIcon(filename);
+	        Resource resource = fileServingServiceImp.getFile("category",filename);
 	        String contentType;
 	        try {
 	            contentType = Files.probeContentType(resource.getFile().toPath());
@@ -64,7 +113,7 @@ public class ImageController {
 	@GetMapping("/banner/{filename}")
 	public ResponseEntity<Resource> serverCourseVideoThumnail(@PathVariable("filename") String filename) {
 	    try {
-	        Resource resource = fileServingServiceImp.getBannerImage(filename);
+	        Resource resource = fileServingServiceImp.getFile("banners",filename);
 	        String contentType;
 	        try {
 	            contentType = Files.probeContentType(resource.getFile().toPath());

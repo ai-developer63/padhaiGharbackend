@@ -65,11 +65,23 @@
         transition: transform 0.3s ease-in-out;
         box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         
-        .banner-thumb:hover {
+ 
+
+    }
+           .banner-thumb:hover {
     transform: scale(1.05);
     transition: transform 0.2s;
 }
-    }
+
+.image-preview {
+    width: 120px;
+    height: 120px;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    object-fit: cover;
+    display: none; /* hidden by default, shown when src set */
+}
+.img-clickable { cursor: pointer; }
 </style>
 </head>
 <body>

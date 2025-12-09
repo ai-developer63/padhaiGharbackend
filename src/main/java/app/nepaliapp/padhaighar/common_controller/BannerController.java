@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import app.nepaliapp.padhaighar.model.BannerModel;
 import app.nepaliapp.padhaighar.serviceimp.BannerServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.CommonServiceImp;
+import app.nepaliapp.padhaighar.serviceimp.CourseServiceImp;
 
 @Controller
 @RequestMapping("/admin/banner")
@@ -31,6 +32,9 @@ public class BannerController {
 
 	@Autowired
 	BannerServiceImp bannerService;
+	
+	@Autowired
+	CourseServiceImp courseServiceImp;
 
 	@Autowired
 	CommonServiceImp commonServiceImp;
@@ -46,14 +50,11 @@ public class BannerController {
 		Pageable pageable = PageRequest.of(page, size);
 		Page<BannerModel> bannersPage = bannerService.getBannersPage(pageable);
 
-		// Hardcoded courses for now
-		List<Map<String, Object>> courses = List.of(Map.of("id", 1, "name", "Mathematics"),
-				Map.of("id", 2, "name", "Science"), Map.of("id", 3, "name", "English"),
-				Map.of("id", 4, "name", "Computer Science"));
+
 
 		model.addAttribute("bannersPage", bannersPage);
 		model.addAttribute("banners", bannersPage.getContent());
-		model.addAttribute("courses", courses);
+		model.addAttribute("courses", courseServiceImp.getAll());
 		model.addAttribute("currentPage", page);
 		model.addAttribute("totalPages", bannersPage.getTotalPages());
 		commonServiceImp.modelForAuth(model);
@@ -93,7 +94,7 @@ public class BannerController {
 			BannerModel banner = new BannerModel();
 			banner.setName(name);
 			banner.setCourseId(courseId);
-			banner.setCourseName("Sample Course"); // TODO: map courseId to name dynamically later
+			banner.setCourseName(courseServiceImp.getById(courseId).getName()); 
 			banner.setIsVisible(isVisible);
 			banner.setBanner(newFilename); // store the saved filename, not original
 

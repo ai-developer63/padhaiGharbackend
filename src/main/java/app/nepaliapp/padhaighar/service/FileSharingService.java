@@ -6,8 +6,7 @@ import org.springframework.core.io.Resource;
 
 public interface FileSharingService {
 
-	Resource getBannerImage(String filename) throws IOException;
 
-	Resource getCategoryIcon(String filename) throws IOException;;
+	Resource getFile(String folder, String filename) throws IOException;;
 
 }

@@ -1,8 +1,16 @@
 package app.nepaliapp.padhaighar.serviceimp;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -13,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import app.nepaliapp.padhaighar.service.CommonService;
@@ -25,7 +34,72 @@ public class CommonServiceImp implements CommonService {
 	@Autowired
 	private JavaMailSender mailSender;
 
-	
+	@Value("${upload_location}")
+	private String uploadLocation;
+
+	// Update file (delete old + upload new)
+	@Override
+	public String updateFile(String folder, MultipartFile newFile, String oldFile) throws IOException {
+
+		if (newFile == null || newFile.isEmpty()) {
+			return oldFile; // keep old one
+		}
+
+		// Delete old
+		deleteFile(folder, oldFile);
+
+		// Upload new
+		return uploadFile(folder, newFile);
+	}
+
+	// Delete file
+	@Override
+	public boolean deleteFile(String folder, String fileName) {
+
+		try {
+			if (fileName == null)
+				return false;
+
+			String filePath = uploadLocation + File.separator + folder + File.separator + fileName;
+			Path path = Paths.get(filePath);
+
+			return Files.deleteIfExists(path);
+
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	// Upload file to dynamic folder
+	@Override
+	public String uploadFile(String folder, MultipartFile file) throws IOException {
+
+		if (file.isEmpty()) {
+			return null;
+		}
+
+		// Path: upload_location/folder/
+		String uploadDir = uploadLocation + File.separator + folder;
+
+		File dir = new File(uploadDir);
+		if (!dir.exists())
+			dir.mkdirs();
+
+		// Generate unique name
+		String originalFilename = file.getOriginalFilename();
+		String ext = "";
+
+		int dot = originalFilename.lastIndexOf(".");
+		if (dot >= 0)
+			ext = originalFilename.substring(dot);
+
+		String newFileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 6) + ext;
+
+		Path path = Paths.get(uploadDir, newFileName);
+		Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+
+		return newFileName;
+	}
 
 	@Override
 	public void removeSessionMessage() {

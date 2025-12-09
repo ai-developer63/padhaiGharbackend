@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+	th:replace="base :: Layout(~{::section})">
+<head>
+<meta charset="UTF-8">
+<title>Video Management</title>
+</head>
+<body>
+<section class="container mt-5 pt-4">
+
+    <h2 class="mb-4 text-primary">
+        <i class="fa-solid fa-video"></i> 
+        Videos for Course: <span th:text="${course.name}">Course Name</span>
+        
+        <a th:href="@{/admin/course/add}" class="btn btn-sm btn-outline-secondary ms-3">
+            <i class="fa-solid fa-arrow-left"></i> Back to Courses
+        </a>
+    </h2>
+    
+    <th:block th:if="${succMsg}">
+        <p class="text-success fw-bold text-center mt-2">[[${succMsg}]]</p>
+    </th:block>
+    <th:block th:if="${errorMsg}">
+        <p class="text-danger text-center fw-bold mt-2">[[${errorMsg}]]</p>
+    </th:block>
+
+    <div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <i class="fa-solid fa-plus"></i> Add New Video
+    </div>
+    <div class="card-body">
+        <form th:action="@{/admin/savehomevideo}" method="post" enctype="multipart/form-data" class="row g-3" th:object="${newVideo}">
+
+            <input type="hidden" th:field="*{courseId}"> 
+            
+            <div class="col-md-6">
+                <label class="form-label">Title</label>
+                <input type="text" th:field="*{title}" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Author Name</label>
+                <input type="text" th:field="*{authorname}" class="form-control" required>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">Short Description</label>
+                <textarea th:field="*{short_description}" class="form-control" rows="3" required></textarea>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Associated Course ID</label>
+                <input type="text" th:value="${course.name} + ' (ID: ' + ${course.id} + ')'" class="form-control" readonly>
+            </div>
+
+
+            <div class="col-md-6">
+                <label class="form-label">Video File</label>
+                <input type="file" name="videoFile" class="form-control" accept="video/*">
+            </div>
+            
+            <div class="col-12 mt-2"> 
+                <div class="form-check form-switch d-flex align-items-center">
+                    <input class="form-check-input" type="checkbox" role="switch" id="isPaidSwitch" 
+                           th:field="*{isPaid}" th:checked="${newVideo.isPaid ?: false}">
+                    
+                    <label class="form-check-label ms-2 fw-bold" for="isPaidSwitch">
+                        Is Free Video? 
+                    </label>
+               
+                </div>
+            </div>
+
+            <div class="col-12 d-flex justify-content-end">
+                <button type="submit" class="btn btn-success">
+                    <i class="fa-solid fa-upload"></i> Save Video
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body text-center">
+        <h5 class="card-title mb-3 text-secondary"><i class="fa-solid fa-list"></i> Manage Uploaded Videos</h5>
+    <p class="text-muted">
+    <span th:text="${totalVideoCount}">0</span> videos currently linked to this course.
+</p>
+        
+        <a th:href="@{/admin/course/videos/list/{id}(id=${course.id})}" class="btn btn-info btn-lg mt-2">
+            <i class="fa-solid fa-eye"></i> Click Here to View & Manage Videos
+        </a>
+    </div>
+</div>
+
+
+
+
+</section>
+
+</body>
+</html>

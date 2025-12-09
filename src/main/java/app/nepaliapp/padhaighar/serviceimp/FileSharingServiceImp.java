@@ -1,5 +1,6 @@
 package app.nepaliapp.padhaighar.serviceimp;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,31 +19,23 @@ public class FileSharingServiceImp implements FileSharingService {
 	String uploadLocation;
 	
 	
-	@Override
-	public Resource getCategoryIcon(String filename) throws IOException {
-		 Path uploadPath = Paths.get(uploadLocation, "category").toAbsolutePath().normalize();
+	 @Override
+	    public Resource getFile(String folder, String filename) throws IOException {
 
-			String uploadLocations = uploadPath.toString();
-			Path filePath = Paths.get(uploadLocations).resolve(filename).normalize();
-			try {
-				return getResourceByPath(filePath);
-			}catch (IOException e) {
-				throw new IOException("File not found or unreadable:"+filePath);
-			}
-	}
-	
-	@Override
-	public Resource getBannerImage(String filename) throws IOException {
-		 Path uploadPath = Paths.get(uploadLocation, "banners").toAbsolutePath().normalize();
+	        // Build folder path: upload_location/folder
+	        Path folderPath = Paths.get(uploadLocation, folder)
+	                .toAbsolutePath()
+	                .normalize();
 
-			String uploadLocations = uploadPath.toString();
-			Path filePath = Paths.get(uploadLocations).resolve(filename).normalize();
-			try {
-				return getResourceByPath(filePath);
-			}catch (IOException e) {
-				throw new IOException("File not found or unreadable:"+filePath);
-			}
-	}
+	        // Create folder if missing
+	        File dir = new File(folderPath.toString());
+	        if (!dir.exists()) dir.mkdirs();
+
+	        // File path
+	        Path finalPath = folderPath.resolve(filename).normalize();
+
+	        return getResourceByPath(finalPath);
+	    }
 
 	
 	private Resource getResourceByPath(Path filePath) throws IOException {

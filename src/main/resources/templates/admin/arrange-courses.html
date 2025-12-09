@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{base :: Layout(~{::section})}">
+<body>
+
+    <section class="container mt-5 mb-5 py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-6"> <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold text-primary">
+                        <i class="fa-solid fa-arrow-up-wide-short"></i> Arrange Courses
+                    </h2>
+                    
+                </div>
+
+                <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fa-solid fa-check-circle"></i> Homepage order updated!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <p class="text-muted mb-4">
+                            Enter the <strong>Course ID</strong> for each position.
+                        </p>
+
+                        <form th:action="@{/admin/arrangecourse/save}" th:object="${arrangeModel}" method="post">
+                            
+                            <input type="hidden" th:field="*{id}">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-primary">1st Position (Top Priority)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-1"></i></span>
+                                    <input type="number" class="form-control" th:field="*{firstId}" placeholder="Enter Course ID (e.g., 101)">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">2nd Position</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-2"></i></span>
+                                    <input type="number" class="form-control" th:field="*{secondId}" placeholder="Enter Course ID">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">3rd Position</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-3"></i></span>
+                                    <input type="number" class="form-control" th:field="*{thirdId}" placeholder="Enter Course ID">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">4th Position</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-4"></i></span>
+                                    <input type="number" class="form-control" th:field="*{fourthId}" placeholder="Enter Course ID">
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">5th Position</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa-solid fa-5"></i></span>
+                                    <input type="number" class="form-control" th:field="*{fifthId}" placeholder="Enter Course ID">
+                                </div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fa-solid fa-floppy-disk"></i> Save Arrangement
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>
