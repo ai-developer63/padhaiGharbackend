@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 
+import app.nepaliapp.padhaighar.api_model.VideoAPIDTO;
 import app.nepaliapp.padhaighar.model.CourseModel;
 import app.nepaliapp.padhaighar.model.CourseVideoModel;
 
@@ -33,4 +34,12 @@ public interface CourseService {
 	List<CourseVideoModel> getVideosByCourse(Long courseId);
 
 	long countVideosByCourse(Long courseId);
+
+	void saveVideo(CourseVideoModel video);
+
+	CourseVideoModel getVideoById(Long videoId);
+
+	void deleteVideo(Long videoId);
+
+	List<VideoAPIDTO> requiredVideoTosupply(Long courseId, Long UserId);
 }

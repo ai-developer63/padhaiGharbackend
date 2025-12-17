@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 public class SubjectDTO {
-
+    Long subjectId;
 	String subjectLogo;
 	String categoryName;
 	String subjectName;

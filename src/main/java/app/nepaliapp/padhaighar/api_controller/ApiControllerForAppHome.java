@@ -20,6 +20,7 @@ import app.nepaliapp.padhaighar.serviceimp.BannerServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.CategoryServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.CommonServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.CourseServiceImp;
+import app.nepaliapp.padhaighar.serviceimp.RatingAndCommentServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
@@ -34,33 +35,30 @@ public class ApiControllerForAppHome {
 
 	@Autowired
 	CommonServiceImp commonServiceImp;
-	
+
 	@Autowired
 	CourseServiceImp courseServiceImp;
 	
+	@Autowired
+	RatingAndCommentServiceImpl ratingAndCommentServiceImpl;
 
-	
-	
 	@GetMapping("subjects")
 	public List<SubjectDTO> getHomeSubjectData() {
-		
+
 		// 1. Get the Sorted List from Service (Models)
 		List<CourseModel> sortedCourses = courseServiceImp.getAllActiveArranged();
 
 		// 2. Convert Model -> DTO and Return
-		return sortedCourses.stream()
-				.limit(30) //total subjects at a moment
+		return sortedCourses.stream().limit(30) // total subjects at a moment
 				.map(course -> {
 					SubjectDTO dto = new SubjectDTO();
 
 					dto.setSubjectName(course.getName());
 					dto.setCategoryName(course.getCategoryName());
 					dto.setTeacherName(course.getTeacherName());
-
+					dto.setSubjectId(course.getId());
 					// ✅ Build absolute image URL
-					dto.setSubjectLogo(
-						commonServiceImp.buildUrlString("/course/", course.getLogo())
-					);
+					dto.setSubjectLogo(commonServiceImp.buildUrlString("course", course.getLogo()));
 
 					dto.setDescription(course.getDescription());
 
@@ -70,14 +68,11 @@ public class ApiControllerForAppHome {
 					}
 
 					// ✅ Random rating
-					dto.setRating(randomRating());
+					dto.setRating(ratingAndCommentServiceImpl.getAverageRatingBySubjectId(course.getId()));
 
 					return dto;
-				})
-				.collect(Collectors.toList());
+				}).collect(Collectors.toList());
 	}
-	
-	
 
 	@Operation(summary = "Get home Info", description = "returns data of User details")
 	@GetMapping("home")
@@ -112,20 +107,7 @@ public class ApiControllerForAppHome {
 		response.setCategory(categoryDTOs);
 		return response;
 	}
-	
-	
-	
-	private BigDecimal randomRating() {
-	    BigDecimal[] ratings = {
-	        new BigDecimal("3.0"),
-	        new BigDecimal("3.5"),
-	        new BigDecimal("4.0"),
-	        new BigDecimal("4.5"),
-	        new BigDecimal("5.0")
-	    };
 
-	    int index = new java.util.Random().nextInt(ratings.length);
-	    return ratings[index];
-	}
+
 
 }

@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import app.nepaliapp.padhaighar.api_model.SubjectDTO;
+import app.nepaliapp.padhaighar.api_model.VideoAPIDTO;
 import app.nepaliapp.padhaighar.model.CourseModel;
 import app.nepaliapp.padhaighar.serviceimp.CommonServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.CourseServiceImp;
+import app.nepaliapp.padhaighar.serviceimp.RatingAndCommentServiceImpl;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -24,9 +26,33 @@ public class ApiControllerForCourses {
 	  
 	@Autowired
 	CommonServiceImp commonServiceImp;
+	
+	@Autowired
+	RatingAndCommentServiceImpl ratingAndCommentServiceImpl;
 	  
 	  
-	// Get Single Subject by ID
+	
+	
+	@GetMapping("/video/{id}")
+	public ResponseEntity<List<VideoAPIDTO>> getCourseVideo(@PathVariable("id") Long id){
+		
+		return ResponseEntity.ok(courseServiceImp.requiredVideoTosupply(id,1L));
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
     @GetMapping("/{id}")
     public ResponseEntity<SubjectDTO> getCourseById(@PathVariable("id") Long id) {
         
@@ -49,13 +75,13 @@ public class ApiControllerForCourses {
         
         dto.setDescription(course.getDescription());
         
-        // Handle Price (convert String/Double to BigDecimal safely)
+        // Price (convert String/Double to BigDecimal safely)
         if (course.getPrice() != null) {
             dto.setOriginalprice(new java.math.BigDecimal(course.getPrice()));
         }
         
-        // Hardcoded rating (consistent with your search logic)
-        dto.setRating(new java.math.BigDecimal("4.5"));
+        
+        dto.setRating(ratingAndCommentServiceImpl.getAverageRatingBySubjectId(id));
 
         return ResponseEntity.ok(dto);
     }

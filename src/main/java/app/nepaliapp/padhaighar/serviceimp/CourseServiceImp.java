@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Sort;
 
+import app.nepaliapp.padhaighar.api_model.VideoAPIDTO;
 import app.nepaliapp.padhaighar.model.CourseModel;
 import app.nepaliapp.padhaighar.model.CourseVideoModel;
 import app.nepaliapp.padhaighar.model.CoursesArrangeModel;
@@ -31,14 +32,69 @@ public class CourseServiceImp implements CourseService {
     @Autowired 
     CourseVideoRepository courseVideoRepository;
     
+    @Autowired
+    CommonServiceImp commonServiceImp;
+    
     
     
     //Courses Video upload part
+   @Override
+   public List<VideoAPIDTO> requiredVideoTosupply(Long courseId, Long userId) {
+
+       List<CourseVideoModel> videos = courseVideoRepository.findByCourseId(courseId);
+
+       List<VideoAPIDTO> response = new ArrayList<>();
+
+       for (CourseVideoModel video : videos) {
+
+           boolean isUnlocked;
+
+           // 🔒 Unlock logic (simplified for now)TODO
+           if (Boolean.FALSE.equals(video.getIsPaid())) {
+               isUnlocked = true; // Free video
+           } else {
+               isUnlocked = false; // Paid – user entitlement ignored for now TODO
+           }
+
+           VideoAPIDTO dto = new VideoAPIDTO(
+                   video.getTitle(),
+                  commonServiceImp.buildUrlString("/api/range/course/",video.getVideo()),
+                   isUnlocked,
+                   false // isStudied → intentionally ignored TODO
+           );
+
+           response.add(dto);
+       }
+
+       return response;
+   }
+
+    
+    
+ 
+ @Override
+    public CourseVideoModel getVideoById(Long videoId) {
+        return courseVideoRepository.findById(videoId).orElse(null);
+    }
+
+ @Override
+    public void deleteVideo(Long videoId) {
+        CourseVideoModel video = getVideoById(videoId);
+        if (video != null) {
+            commonServiceImp.deleteFile("coursesVideo", video.getVideo());
+            courseVideoRepository.deleteById(videoId);
+        }
+    }
+    
+    
+    
+    @Override
+    public void saveVideo(CourseVideoModel video) {
+        courseVideoRepository.save(video);
+    }
     
     @Override
     public List<CourseVideoModel> getVideosByCourse(Long courseId) {
-        // ⚠️ ASSUMPTION: CourseVideoRepository has findByCourseId(Long courseId)
-        // If not, you need to add this method to CourseVideoRepository.
         return courseVideoRepository.findByCourseId(courseId); 
     }
     

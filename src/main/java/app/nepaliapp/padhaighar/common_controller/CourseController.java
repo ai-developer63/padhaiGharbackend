@@ -49,6 +49,173 @@ public class CourseController {
 	// Courses Video Part Controller
 
 	// Video Required
+	@GetMapping("/courses/videos/edit/{videoId}")
+	public String editVideo(@PathVariable("videoId") Long videoId,
+	                        Model model,
+	                        RedirectAttributes ra) {
+
+	    CourseVideoModel video = courseServiceImp.getVideoById(videoId);
+	    if (video == null) {
+	        ra.addFlashAttribute("errorMsg", "Video not found.");
+	        return "redirect:/admin/course/add";
+	    }
+
+	    commonServiceImp.modelForAuth(model);
+
+	    CourseModel course =
+	            courseServiceImp.getById(video.getCourseId());
+
+	    model.addAttribute("course", course);
+	    model.addAttribute("newVideo", video);
+	    model.addAttribute("isEdit", true);
+	    model.addAttribute("totalVideoCount",
+	            courseServiceImp.getVideosByCourse(course.getId()).size());
+
+	    return "admin/coursevideoupload";
+	}
+
+
+	
+	
+	
+	
+	
+	
+	
+	@GetMapping("/courses/videos/delete/{videoId}")
+	public String deleteVideo(@PathVariable("videoId") Long videoId, RedirectAttributes ra) {
+	    CourseVideoModel video = courseServiceImp.getVideoById(videoId);
+	    if (video != null) {
+	        courseServiceImp.deleteVideo(videoId);
+	        ra.addFlashAttribute("succMsg", "Video deleted successfully!");
+	        return "redirect:/admin/course/videos/list/" + video.getCourseId();
+	    }
+	    ra.addFlashAttribute("errorMsg", "Video not found.");
+	    return "redirect:/admin/courses/videos/list/" + videoId;
+	}
+
+	
+	
+	
+	
+	
+	
+	@GetMapping("/course/videos/list/{courseId}")
+	public String listCourseVideos(@PathVariable("courseId") Long courseId, Model model,
+	                               RedirectAttributes redirectAttributes) {
+
+	    commonServiceImp.modelForAuth(model);
+
+	    CourseModel course = courseServiceImp.getById(courseId);
+	    if (course == null) {
+	        redirectAttributes.addFlashAttribute("errorMsg", "Course not found.");
+	        return "redirect:/admin/course/add";
+	    }
+
+	    List<CourseVideoModel> videos = courseServiceImp.getVideosByCourse(courseId);
+
+	    model.addAttribute("course", course);
+	    model.addAttribute("videos", videos);
+	    model.addAttribute("totalVideoCount", videos.size());
+
+	    return "admin/coursevideolist";
+	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+
+	
+	
+	
+	@PostMapping("/courses/videos/save")
+	public String saveCourseVideo(
+	        @ModelAttribute("newVideo") CourseVideoModel formVideo,
+	        @RequestParam(value = "videoFile", required = false) MultipartFile videoFile,
+	        RedirectAttributes ra) {
+
+	    try {
+	        CourseVideoModel entity;
+
+	        /* =========================
+	           EDIT MODE
+	        ========================== */
+	        if (formVideo.getId() != null) {
+
+	            entity = courseServiceImp.getVideoById(formVideo.getId());
+	            if (entity == null) {
+	                ra.addFlashAttribute("errorMsg", "Video not found.");
+	                return "redirect:/admin/course/add";
+	            }
+
+	            /* Update ONLY metadata */
+	            entity.setTitle(formVideo.getTitle());
+	            entity.setAuthorname(formVideo.getAuthorname());
+	            entity.setShort_description(formVideo.getShort_description());
+	            entity.setIsPaid(formVideo.getIsPaid());
+
+	            /* Replace video ONLY if explicitly uploaded */
+	            if (videoFile != null && !videoFile.isEmpty()) {
+
+	                // delete old physical file
+	            	 commonServiceImp.deleteFile("coursesVideo",entity.getVideo());
+
+	                // upload new file
+	                String uploadedFile =
+	                        commonServiceImp.uploadFile("coursesVideo", videoFile);
+
+	                entity.setVideo(uploadedFile);
+	            }
+
+
+	            ra.addFlashAttribute("succMsg", "Video updated successfully!");
+
+	        }
+	        /* =========================
+	           CREATE MODE
+	        ========================== */
+	        else {
+
+	            if (videoFile == null || videoFile.isEmpty()) {
+	                ra.addFlashAttribute("errorMsg", "Video file is required.");
+	                return "redirect:/admin/course/add";
+	            }
+
+	            String uploadedFile =
+	                    commonServiceImp.uploadFile("coursesVideo", videoFile);
+	            formVideo.setVideo(uploadedFile);
+
+	            entity = formVideo;
+
+	            ra.addFlashAttribute("succMsg", "Video uploaded successfully!");
+	        }
+
+	        courseServiceImp.saveVideo(entity);
+
+	    } catch (Exception e) {
+	        ra.addFlashAttribute("errorMsg",
+	                "Operation failed: " + e.getMessage());
+	    }
+
+	    return "redirect:/admin/courses/videos/" + formVideo.getCourseId();
+	}
+
+	
+	
+	
+	
+	
+	
 
 	@GetMapping("/courses/videos/{courseId}")
 	public String videoJustme(Model model, @PathVariable("courseId") Long courseId,
@@ -64,8 +231,11 @@ public class CourseController {
 
 		model.addAttribute("course", course);
 
-		CourseVideoModel courseVideoModel = new CourseVideoModel();
-		model.addAttribute("newVideo", courseVideoModel);
+	    CourseVideoModel courseVideoModel = new CourseVideoModel();
+	    courseVideoModel.setCourseId(course.getId());
+	    courseVideoModel.setCourseName(course.getName());
+	    model.addAttribute("newVideo", courseVideoModel);
+	    model.addAttribute("isEdit", false);
 		List<CourseVideoModel> allVideos = courseServiceImp.getVideosByCourse(courseId);
 		long totalVideoCount = allVideos.size();
 		model.addAttribute("totalVideoCount", totalVideoCount);

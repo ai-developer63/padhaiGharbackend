@@ -29,55 +29,78 @@
         <i class="fa-solid fa-plus"></i> Add New Video
     </div>
     <div class="card-body">
-        <form th:action="@{/admin/savehomevideo}" method="post" enctype="multipart/form-data" class="row g-3" th:object="${newVideo}">
+     <form th:action="@{/admin/courses/videos/save}"
+      th:object="${newVideo}"
+      method="post"
+      enctype="multipart/form-data"
+      class="row g-3">
 
-            <input type="hidden" th:field="*{courseId}"> 
-            
-            <div class="col-md-6">
-                <label class="form-label">Title</label>
-                <input type="text" th:field="*{title}" class="form-control" required>
-            </div>
+    <!-- Always -->
+    <input type="hidden" th:field="*{courseId}" />
+    <input type="hidden" th:field="*{courseName}" />
 
-            <div class="col-md-6">
-                <label class="form-label">Author Name</label>
-                <input type="text" th:field="*{authorname}" class="form-control" required>
-            </div>
+    <!-- Edit only -->
+    <th:block th:if="${isEdit}">
+        <input type="hidden" th:field="*{id}" />
+        <input type="hidden" th:field="*{video}" />
+    </th:block>
 
-            <div class="col-12">
-                <label class="form-label">Short Description</label>
-                <textarea th:field="*{short_description}" class="form-control" rows="3" required></textarea>
-            </div>
+    <div class="col-md-6">
+        <label class="form-label">Title</label>
+        <input type="text" th:field="*{title}" class="form-control" required>
+    </div>
 
-            <div class="col-md-6">
-                <label class="form-label">Associated Course ID</label>
-                <input type="text" th:value="${course.name} + ' (ID: ' + ${course.id} + ')'" class="form-control" readonly>
-            </div>
+    <div class="col-md-6">
+        <label class="form-label">Author Name</label>
+        <input type="text" th:field="*{authorname}" class="form-control" required>
+    </div>
 
+    <div class="col-12">
+        <label class="form-label">Short Description</label>
+        <textarea th:field="*{short_description}"
+                  class="form-control"
+                  rows="3"
+                  required></textarea>
+    </div>
 
-            <div class="col-md-6">
-                <label class="form-label">Video File</label>
-                <input type="file" name="videoFile" class="form-control" accept="video/*">
-            </div>
-            
-            <div class="col-12 mt-2"> 
-                <div class="form-check form-switch d-flex align-items-center">
-                    <input class="form-check-input" type="checkbox" role="switch" id="isPaidSwitch" 
-                           th:field="*{isPaid}" th:checked="${newVideo.isPaid ?: false}">
-                    
-                    <label class="form-check-label ms-2 fw-bold" for="isPaidSwitch">
-                        Is Free Video? 
-                    </label>
-               
-                </div>
-            </div>
+    <div class="col-md-6">
+        <label class="form-label">Associated Course</label>
+        <input type="text"
+               th:value="${course.name + ' (ID: ' + course.id + ')'}"
+               class="form-control"
+               readonly>
+    </div>
 
-            <div class="col-12 d-flex justify-content-end">
-                <button type="submit" class="btn btn-success">
-                    <i class="fa-solid fa-upload"></i> Save Video
-                </button>
-            </div>
+    <div class="col-md-6">
+        <label class="form-label">Video File</label>
+        <input type="file"
+               name="videoFile"
+               class="form-control"
+               accept="video/*">
+        <small class="text-muted" th:if="${isEdit}">
+            Leave empty to keep existing video
+        </small>
+    </div>
 
-        </form>
+    <div class="col-12 mt-2">
+        <div class="form-check form-switch">
+            <input class="form-check-input"
+                   type="checkbox"
+                   th:field="*{isPaid}">
+            <label class="form-check-label fw-bold">
+                Is Free Video?
+            </label>
+        </div>
+    </div>
+
+    <div class="col-12 d-flex justify-content-end">
+        <button type="submit" class="btn btn-success">
+            <i class="fa-solid fa-upload"></i>
+            <span th:text="${isEdit} ? 'Update Video' : 'Save Video'"></span>
+        </button>
+    </div>
+</form>
+
     </div>
 </div>
 

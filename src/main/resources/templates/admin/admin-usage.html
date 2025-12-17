@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: Layout(~{::section})}">
+<head>
+    <title>Admin - Data Usage</title>
+</head>
+<body>
+
+<section class="container mt-5 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fa-solid fa-chart-line text-primary"></i> Data Usage Analytics</h2>
+        
+        <form th:action="@{/admin/usage/cleanup}" method="post" onsubmit="return confirm('Are you sure? This deletes all records older than 30 days.');">
+            <button type="submit" class="btn btn-danger">
+                <i class="fa-solid fa-trash-can"></i> Purge Old Data
+            </button>
+        </form>
+    </div>
+
+    <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show">
+        Cleanup command sent successfully. Background process started.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row">
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fa-solid fa-trophy text-warning"></i> Top 20 Consumers</h5>
+                </div>
+                <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>User</th>
+                                <th class="text-end">Total Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="user : ${topUsers}">
+                                <td>
+                                    <strong th:text="${user.userName != null ? user.userName : 'User #' + user.userId}">User</strong>
+                                </td>
+                                <td class="text-end fw-bold text-primary" th:text="${user.getFormattedSize()}">0 MB</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(topUsers)}">
+                                <td colspan="2" class="text-center text-muted">No data available</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm">
+                
+                <div class="card-header bg-white">
+                    <form th:action="@{/admin/usage}" method="get" class="row g-2 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted">Start Date</label>
+                            <input type="date" name="startDate" class="form-control form-control-sm" th:value="${startDate}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted">End Date</label>
+                            <input type="date" name="endDate" class="form-control form-control-sm" th:value="${endDate}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted">User ID (Optional)</label>
+                            <input type="number" name="userId" class="form-control form-control-sm" placeholder="e.g. 101" th:value="${userId}">
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                <i class="fa-solid fa-filter"></i> Filter Logs
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-body">
+                    <h5 class="card-title text-muted mb-3">Daily Usage Logs</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>User Name</th> <th class="text-end">Consumed</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="log : ${history}">
+                                    <td th:text="${log.usageDate}">2023-01-01</td>
+                                    <td>
+                                        <a th:href="@{/admin/usage(userId=${log.userId})}" class="text-decoration-none text-dark">
+                                            
+                                            <strong th:text="${userNamesMap.get(log.userId) != null ? userNamesMap.get(log.userId) : 'Unknown'}">Name</strong>
+                                            
+                                            <span class="badge bg-secondary ms-1 small" th:text="'#' + ${log.userId}">#123</span>
+                                        </a>
+                                    </td>
+                                    <td class="text-end" th:text="${formatter.format(log.totalBytes)}">500 MB</td>
+                                </tr>
+                                
+                                <tr th:if="${#lists.isEmpty(history)}">
+                                    <td colspan="3" class="text-center py-4 text-muted">
+                                        <i class="fa-solid fa-folder-open display-6 d-block mb-2"></i>
+                                        No logs found for this period.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+</body>
+</html>

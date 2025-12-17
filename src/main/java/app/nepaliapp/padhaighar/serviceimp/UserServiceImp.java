@@ -39,7 +39,27 @@ public class UserServiceImp implements UserService {
 	  private static final String TEACHER_CACHE = "teacherCache";
 	  TimedCache<String, UserModel> teacherCache = manager.getOrCreateCache(TEACHER_CACHE, 1000);
 
-	  
+	  @Override
+	  public String getUserName(Long id) {
+	      if (id == null || id <= 0) {
+	          return "Unknown";
+	      }
+
+	      // cache key
+	      String key = "user:" + id;
+	      UserModel cachedUser = userCache.get(key);
+	      if (cachedUser != null) {
+	          return cachedUser.getName();
+	      }
+
+	      return userRepository.findById(id)
+	              .map(user -> {
+	                  userCache.put(key, user);
+	                  return user.getName();
+	              })
+	              .orElse("User #" + id);
+	  }
+
 
 	  @Override
 	  public UserModel getTeacherById(Long id) {
@@ -84,25 +104,17 @@ public class UserServiceImp implements UserService {
 		
 		
 		
-	  @Override
-	    public Page<UserModel> getFilteredUsers(String lastActive, String country, String refer, Pageable pageable) {
-	        List<UserModel> all = userRepository.findAll();
+		@Override
+		public Page<UserModel> getFilteredUsers(String lastActive, String country, String refer, Pageable pageable) {
 
-	        List<UserModel> filtered = all.stream()
-	                .filter(u -> !StringUtils.hasText(lastActive) ||
-	                        (u.getLastActive() != null && u.getLastActive().contains(lastActive)))
-	                .filter(u -> !StringUtils.hasText(country) ||
-	                        (u.getCountry() != null && u.getCountry().equalsIgnoreCase(country)))
-	                .filter(u -> !StringUtils.hasText(refer) ||
-	                        (u.getRefer() != null && u.getRefer().equalsIgnoreCase(refer)))
-	                .toList();
+		    // Normalize empty strings to null (important for JPQL)
+		    String lastActiveVal = StringUtils.hasText(lastActive) ? lastActive : null;
+		    String countryVal = StringUtils.hasText(country) ? country : null;
+		    String referVal = StringUtils.hasText(refer) ? refer : null;
 
-	        int start = (int) pageable.getOffset();
-	        int end = Math.min(start + pageable.getPageSize(), filtered.size());
-
-	        List<UserModel> subList = filtered.subList(start, end);
-	        return new PageImpl<>(subList, pageable, filtered.size());
-	    }	  
+		    return userRepository.getFilteredUsers(lastActiveVal, countryVal, referVal, pageable);
+		}
+ 
 	  
 	  
 	  
