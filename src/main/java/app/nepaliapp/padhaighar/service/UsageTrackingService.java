@@ -3,6 +3,9 @@ package app.nepaliapp.padhaighar.service;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import app.nepaliapp.padhaighar.api_model.UsageStatDTO;
 import app.nepaliapp.padhaighar.model.UserDailyUsage;
 
@@ -25,5 +28,7 @@ public interface UsageTrackingService {
  // New Reporting Methods
     List<UsageStatDTO> getTopUsers(int limit);
     List<UserDailyUsage> getUsageHistory(Long userId, LocalDate start, LocalDate end);
+
+	Page<UserDailyUsage> getUsagesHistory(Long userId, LocalDate start, LocalDate end, Pageable pageable);
 
 }

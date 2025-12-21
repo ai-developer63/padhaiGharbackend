@@ -6,7 +6,9 @@ import app.nepaliapp.padhaighar.repository.UserUsageRepository;
 import app.nepaliapp.padhaighar.service.UsageTrackingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -47,6 +49,28 @@ public class UsageTrackingServiceImp implements UsageTrackingService {
         return repository.findByUsageDateBetweenOrderByUsageDateDesc(start, end);
     }
 
+    
+    @Override
+    public Page<UserDailyUsage> getUsagesHistory(
+            Long userId,
+            LocalDate start,
+            LocalDate end,
+            Pageable pageable
+    ) {
+        if (userId != null && userId > 0) {
+            return repository
+                    .findByUserIdAndUsageDateBetweenOrderByUsageDateDesc(
+                            userId, start, end, pageable
+                    );
+        }
+        return repository
+                .findByUsageDateBetweenOrderByUsageDateDesc(
+                        start, end, pageable
+                );
+    }
+    
+    
+    
     @Override
     public void track(long userId, long bytes) {
         // If userId is 0 or negative (invalid), ignore
@@ -60,11 +84,12 @@ public class UsageTrackingServiceImp implements UsageTrackingService {
     }
 
     /**
-     * Runs every 10 seconds.
+     * Runs every 1hrs.
      * Drains the memory buffer and updates the database.
      */
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 3600000)
     public void flushBufferToDb() {
+         
         if (usageBuffer.isEmpty()) return;
 
         // Iterate over the map entries
@@ -76,6 +101,7 @@ public class UsageTrackingServiceImp implements UsageTrackingService {
             long bytes = atomicBytes.getAndSet(0);
 
             if (bytes > 0) {
+            	 
                 processBatchItem(key, bytes);
             }
             // Optional: You could remove keys here if desired, 
@@ -97,11 +123,14 @@ public class UsageTrackingServiceImp implements UsageTrackingService {
 
             // 1. Try the fast UPDATE query first
             try {
-                repository.incrementUsage(userId, date, bytes);
+            	 System.out.println("system came try"+ date);
+                int incrementUsage = repository.incrementUsage(userId, date, bytes);
+                if (incrementUsage == 0) {
+                    // Row did not exist → insert new one
+                    saveNewRecord(userId, date, bytes);
+                }
             } catch (Exception e) {
-                // 2. If update fails (likely row doesn't exist), insert new row
-                // Note: passing 'long userId' here works fine (autoboxing to Long)
-                saveNewRecord(userId, date, bytes);
+
             }
             
         } catch (Exception e) {

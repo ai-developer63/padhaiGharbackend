@@ -1,22 +1,31 @@
 package app.nepaliapp.padhaighar.api_controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import app.nepaliapp.padhaighar.api_model.SubjectDTO;
 import app.nepaliapp.padhaighar.api_model.VideoAPIDTO;
+import app.nepaliapp.padhaighar.api_model.VideoStudyRequestDTO;
+import app.nepaliapp.padhaighar.config.JwtUtil;
 import app.nepaliapp.padhaighar.model.CourseModel;
+import app.nepaliapp.padhaighar.model.UserModel;
+import app.nepaliapp.padhaighar.service.CourseVideoWatchedService;
 import app.nepaliapp.padhaighar.serviceimp.CommonServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.CourseServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.RatingAndCommentServiceImpl;
+import app.nepaliapp.padhaighar.serviceimp.UserServiceImp;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -30,13 +39,41 @@ public class ApiControllerForCourses {
 	@Autowired
 	RatingAndCommentServiceImpl ratingAndCommentServiceImpl;
 	  
-	  
+	@Autowired
+	CourseVideoWatchedService service;
 	
+	
+	@Autowired
+	UserServiceImp userServiceImp;
+
+	    @PostMapping("/video/study-status")
+	    public ResponseEntity<?> markVideoStudied(
+	            @RequestHeader("Authorization") String token,
+	            @RequestBody VideoStudyRequestDTO dto) {
+
+	        token = token.substring(7);
+	        String username = JwtUtil.extractUsername(token);
+
+	        UserModel user =
+	            userServiceImp.getUserByPhoneorEmail(username);
+
+	        service.markVideoStudied(user.getId(), dto);
+
+	        return ResponseEntity.ok(
+	        	    Map.of("success", true)
+	        	);
+
+	    }
 	
 	@GetMapping("/video/{id}")
-	public ResponseEntity<List<VideoAPIDTO>> getCourseVideo(@PathVariable("id") Long id){
+	public ResponseEntity<List<VideoAPIDTO>> getCourseVideo(@PathVariable("id") Long id, @RequestHeader("Authorization") String token){
 		
-		return ResponseEntity.ok(courseServiceImp.requiredVideoTosupply(id,1L));
+		token = token.substring(7);
+        String username = JwtUtil.extractUsername(token);
+
+        UserModel user =
+            userServiceImp.getUserByPhoneorEmail(username);
+		return ResponseEntity.ok(courseServiceImp.requiredVideoTosupply(id,user.getId()));
 		
 	}
 	

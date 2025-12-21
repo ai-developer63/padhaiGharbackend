@@ -8,6 +8,9 @@ import app.nepaliapp.padhaighar.serviceimp.CommonServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.UserServiceImp;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -37,42 +40,55 @@ public class AdminUsageController {
  
     @GetMapping("/usage")
     public String viewUsageDashboard(
-            @RequestParam(name="userId",required = false) Long userId,
-            @RequestParam(name="startDate",required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(name="endDate",required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            Model model) {
+            @RequestParam(name = "userId", required = false) Long userId,
+            @RequestParam(name = "startDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(name = "endDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "100") int size,
+            Model model
+    ) {
 
-        // Default to last 30 days if no date provided
-        if (startDate == null) startDate = LocalDate.now().minusDays(30);
+        if (startDate == null) startDate = LocalDate.now();
         if (endDate == null) endDate = LocalDate.now();
 
-        // 1. Get History Logs
-        List<UserDailyUsage> history = usageService.getUsageHistory(userId, startDate, endDate);
-        
-        // 2. Get Top 20 Users (Global stats)
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<UserDailyUsage> historyPage =
+                usageService.getUsagesHistory(userId, startDate, endDate, pageable);
+
+        List<UserDailyUsage> history = historyPage.getContent();
+
         List<UsageStatDTO> topUsers = usageService.getTopUsers(20);
 
-     // 3. FILL NAMES for History (Entity)
-        // Since we cannot easily modify the Entity, we create a Map<UserId, Name>
+        // USER NAME MAP (same logic, but smaller dataset now)
         Map<Long, String> userNamesMap = new HashMap<>();
-        
-        // Collect distinct IDs from history to avoid duplicate DB calls
         history.stream()
-               .map(UserDailyUsage::getUserId)
-               .distinct()
-               .forEach(id -> userNamesMap.put(id, userServiceImp.getUserName(id)));
+                .map(UserDailyUsage::getUserId)
+                .distinct()
+                .forEach(id -> userNamesMap.put(id, userServiceImp.getUserName(id)));
+
         model.addAttribute("userNamesMap", userNamesMap);
         model.addAttribute("history", history);
         model.addAttribute("topUsers", topUsers);
+
+        // Pagination metadata
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", historyPage.getTotalPages());
+        model.addAttribute("totalItems", historyPage.getTotalElements());
+        model.addAttribute("pageSize", size);
+
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
         model.addAttribute("userId", userId);
-        
-        // Helper to format bytes in Thymeleaf
+
         model.addAttribute("formatter", new ByteFormatter());
-commonServiceImp.modelForAuth(model);
+        commonServiceImp.modelForAuth(model);
+
         return "admin/admin-usage";
     }
+
 
     @PostMapping("/usage/cleanup")
     public String triggerCleanup() {

@@ -34,6 +34,8 @@ public class CourseServiceImp implements CourseService {
     
     @Autowired
     CommonServiceImp commonServiceImp;
+    @Autowired
+    CourseVideoWatchedServiceImp courseVideoWatchedServiceImp;
     
     
     
@@ -55,12 +57,15 @@ public class CourseServiceImp implements CourseService {
            } else {
                isUnlocked = false; // Paid – user entitlement ignored for now TODO
            }
-
+           boolean watched =
+        		   courseVideoWatchedServiceImp.isVideoStudied(userId, video.getId());
            VideoAPIDTO dto = new VideoAPIDTO(
+        		   video.getId(),
+        		   video.getCourseId(),
                    video.getTitle(),
                   commonServiceImp.buildUrlString("/api/range/course/",video.getVideo()),
                    isUnlocked,
-                   false // isStudied → intentionally ignored TODO
+                   watched
            );
 
            response.add(dto);
@@ -102,14 +107,6 @@ public class CourseServiceImp implements CourseService {
     public long countVideosByCourse(Long courseId) {
         return courseVideoRepository.countByCourseId(courseId);
     }
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     

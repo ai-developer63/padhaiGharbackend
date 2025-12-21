@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class VideoAPIDTO {
-
+	
+    Long vId;
+    Long courseId;
 	String videoTitle;
 	String url;
 	boolean isUnlocked;

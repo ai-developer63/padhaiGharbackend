@@ -3,6 +3,8 @@ package app.nepaliapp.padhaighar.repository;
 
 import app.nepaliapp.padhaighar.api_model.UsageStatDTO;
 import app.nepaliapp.padhaighar.model.UserDailyUsage;
+
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -23,8 +25,17 @@ public interface UserUsageRepository extends JpaRepository<UserDailyUsage, Long>
 
     @Transactional
     @Modifying
-    @Query("UPDATE UserDailyUsage u SET u.totalBytes = u.totalBytes + :bytes WHERE u.userId = :userId AND u.usageDate = :date")
-    void incrementUsage(@Param("userId") Long userId, @Param("date") LocalDate date, @Param("bytes") long bytes);
+    @Query("""
+    UPDATE UserDailyUsage u
+    SET u.totalBytes = u.totalBytes + :bytes
+    WHERE u.userId = :userId AND u.usageDate = :date
+    """)
+    int incrementUsage(
+        @Param("userId") Long userId,
+        @Param("date") LocalDate date,
+        @Param("bytes") long bytes
+    );
+
 
     @Transactional
     @Modifying
@@ -45,4 +56,21 @@ public interface UserUsageRepository extends JpaRepository<UserDailyUsage, Long>
            "GROUP BY u.userId " +
            "ORDER BY SUM(u.totalBytes) DESC")
     List<UsageStatDTO> findTopUsers(Pageable pageable);
+    
+
+    Page<UserDailyUsage> findByUserIdAndUsageDateBetweenOrderByUsageDateDesc(
+            Long userId,
+            LocalDate start,
+            LocalDate end,
+            Pageable pageable
+    );
+
+    Page<UserDailyUsage> findByUsageDateBetweenOrderByUsageDateDesc(
+            LocalDate start,
+            LocalDate end,
+            Pageable pageable
+    );
+    
+    
+    
 }
