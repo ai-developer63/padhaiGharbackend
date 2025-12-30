@@ -26,7 +26,7 @@
         </div>
         <div class="col-md-4">
             <div class="card text-center shadow-sm p-3">
-                <h5>Pending Purchase Request</h5>
+                <h5>Pending Affiliate Request</h5>
                 <p class="fs-3 text-warning" th:text="${pendingPurchaseRequests}">0</p>
             </div>
         </div>
@@ -115,6 +115,25 @@
     </a>
   </div>
 <div class="col-md-3">
+    <a href="/admin/settings" class="text-decoration-none">
+        <div class="card card-sh h-100 text-center shadow-sm hover-scale p-3">
+            <i class="fa-solid fa-gears fa-2x text-primary mb-2"></i>
+            <h6 class="fw-bold">Service Settings</h6>
+            <p class="small text-muted mb-2">
+                Enable or disable backend services and server-level features. Please donot create anysetting Only by developer
+            </p>
+ <span class="badge bg-danger mb-2">
+                <i class="fa-solid fa-circle-check"></i> Only Added by Developer
+            </span>
+
+        </div>
+    </a>
+</div>
+
+</div>
+    <div class="row g-4 mb-5">
+    
+    <div class="col-md-3">
     <a href="#" class="text-decoration-none">
         <div class="card card-sh h-100 text-center shadow-sm hover-scale p-3">
             <i class="fa-solid fa-bell fa-2x text-warning mb-2"></i>
@@ -125,8 +144,9 @@
         </div>
     </a>
 </div>
-</div>
-    <div class="row g-4 mb-5">
+    
+    
+    
    <!-- Marketing Video -->
   <div class="col-md-3">
     <a href="#" class="text-decoration-none">
@@ -155,6 +175,17 @@
     </a>
   </div>
  
+<div class="col-md-3">
+  <a href="/admin/updatePurchasePage" class="text-decoration-none" aria-label="Activate Purchase System">
+    <div class="card card-sh h-100 text-center shadow-sm hover-scale p-3">
+      <i class="fa-solid fa-credit-card fa-2x text-warning mb-2" aria-hidden="true"></i>
+      <h6 class="fw-bold">Activate Subjects Days</h6>
+      <p class="small text-muted mb-0">
+        Manage user purchases, Add days, billing and payment settings
+      </p>
+    </div>
+  </a>
+</div>
 
 
 

@@ -25,6 +25,7 @@ import app.nepaliapp.padhaighar.service.CourseVideoWatchedService;
 import app.nepaliapp.padhaighar.serviceimp.CommonServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.CourseServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.RatingAndCommentServiceImpl;
+import app.nepaliapp.padhaighar.serviceimp.ServerSettingServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.UserServiceImp;
 
 @RestController
@@ -41,6 +42,9 @@ public class ApiControllerForCourses {
 	  
 	@Autowired
 	CourseVideoWatchedService service;
+	
+	@Autowired
+	ServerSettingServiceImp serverSettingServiceImp;
 	
 	
 	@Autowired
@@ -111,6 +115,7 @@ public class ApiControllerForCourses {
         dto.setSubjectLogo(commonServiceImp.buildUrlString("/course/", course.getLogo()));
         
         dto.setDescription(course.getDescription());
+        dto.setShowPrice(serverSettingServiceImp.getStatusById(1L));
         
         // Price (convert String/Double to BigDecimal safely)
         if (course.getPrice() != null) {
@@ -155,7 +160,7 @@ public class ApiControllerForCourses {
             dto.setTeacherName(course.getTeacherName());
             dto.setSubjectLogo(commonServiceImp.buildUrlString("/course/", course.getLogo()));
             dto.setDescription(course.getDescription());
-            
+            dto.setShowPrice(serverSettingServiceImp.getStatusById(1L));
             if (course.getPrice() != null) 
                 dto.setOriginalprice(new java.math.BigDecimal(course.getPrice()));
             

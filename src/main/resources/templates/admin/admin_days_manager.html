@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml"
+      th:replace="~{base::Layout(~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Purchase Update</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+</head>
+
+<body>
+<section>
+    <div class="container mt-4 py-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Grant Course Access</h5>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/admin/updatePurchasedTopic}" method="post">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Step 1: Target User ID</label>
+                        <input type="number" name="userId" id="userIdField" class="form-control" placeholder="Enter User ID" required>
+                    </div>
+
+                    <div class="mb-3 position-relative">
+                        <label class="form-label fw-bold">Step 2: Search & Select Subject</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-book"></i></span>
+                            <input type="text" id="subjectInput" class="form-control" autocomplete="off" placeholder="Type subject name (e.g. Chemistry)...">
+                        </div>
+                        
+                        <div id="searchResults" class="list-group position-absolute w-100 shadow-lg d-none" style="z-index: 1050; max-height: 250px; overflow-y: auto;">
+                            </div>
+
+                        <input type="hidden" name="courseId" id="selectedCourseId">
+                        
+                        <div id="selectionBadge" class="mt-2 d-none">
+                            <span class="badge bg-success p-2">
+                                Selected: <span id="selectedNameText">None</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Step 3: Duration (Days)</label>
+                        <input type="number" name="Days" class="form-control" placeholder="365" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Update Purchase</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const subjectInput = document.getElementById('subjectInput');
+    const searchResults = document.getElementById('searchResults');
+    const selectedIdField = document.getElementById('selectedCourseId');
+    const selectionBadge = document.getElementById('selectionBadge');
+    const selectedNameText = document.getElementById('selectedNameText');
+
+    // 1. Define the timer variable outside the event listener
+    let debounceTimer;
+
+    subjectInput.addEventListener('input', function() {
+        const query = this.value;
+
+        // Clear the previous timer every time the user types
+        clearTimeout(debounceTimer);
+
+        if (query.length < 2) {
+            searchResults.classList.add('d-none');
+            return;
+        }
+
+        // 2. Set a new timer to wait 300ms after the last keystroke
+        debounceTimer = setTimeout(() => {
+            console.log("Searching for:", query); // Debugging line
+
+            axios.get(`/api/courses/search?q=${query}`)
+                .then(response => {
+                    const data = response.data;
+                    searchResults.innerHTML = '';
+
+                    if (data && data.length > 0) {
+                        searchResults.classList.remove('d-none');
+                        data.forEach(item => {
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'list-group-item list-group-item-action py-2';
+                            
+                            // Note: Ensure your SubjectDTO has 'subjectName' and 'categoryName'
+                            btn.innerHTML = `
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong>${item.subjectName}</strong>
+                                    <span class="badge bg-light text-dark border">${item.categoryName}</span>
+                                </div>
+                            `;
+                            
+                            btn.onclick = () => {
+                                // Make sure 'item.id' or the primary key is present in your DTO
+                                selectSubject(item.id, item.subjectName);
+                            };
+                            searchResults.appendChild(btn);
+                        });
+                    } else {
+                        searchResults.classList.add('d-none');
+                    }
+                })
+                .catch(err => {
+                    console.error("Search error:", err);
+                    searchResults.classList.add('d-none');
+                });
+        }, 300); // 300 milliseconds delay
+    });
+
+    function selectSubject(id, name) {
+        // Set the hidden ID field for form submission
+        selectedIdField.value = id;
+        
+        // Update UI
+        selectedNameText.innerText = name;
+        subjectInput.value = name; 
+        
+        // Hide dropdown and show the "Selected" badge
+        searchResults.classList.add('d-none');
+        selectionBadge.classList.remove('d-none');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!subjectInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.classList.add('d-none');
+        }
+    });
+</script>
+</section>
+</body>
+</html>

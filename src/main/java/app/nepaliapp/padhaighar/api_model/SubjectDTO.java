@@ -14,5 +14,6 @@ public class SubjectDTO {
 	BigDecimal rating; 
 	String description;
 	BigDecimal originalprice;
+	Boolean showPrice;
 	
 }

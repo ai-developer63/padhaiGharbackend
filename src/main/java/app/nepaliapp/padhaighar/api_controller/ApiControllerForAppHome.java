@@ -12,6 +12,7 @@ import app.nepaliapp.padhaighar.api_model.SubjectDTO;
 import app.nepaliapp.padhaighar.model.BannerModel;
 import app.nepaliapp.padhaighar.model.CategoryModel;
 import app.nepaliapp.padhaighar.model.CourseModel;
+import app.nepaliapp.padhaighar.model.ServerSettingModel;
 import app.nepaliapp.padhaighar.model.dto.BannerDTO;
 import app.nepaliapp.padhaighar.model.dto.CategoryDTO;
 import app.nepaliapp.padhaighar.model.dto.HomeResponseDTO;
@@ -21,6 +22,7 @@ import app.nepaliapp.padhaighar.serviceimp.CategoryServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.CommonServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.CourseServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.RatingAndCommentServiceImpl;
+import app.nepaliapp.padhaighar.serviceimp.ServerSettingServiceImp;
 import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
@@ -41,6 +43,9 @@ public class ApiControllerForAppHome {
 	
 	@Autowired
 	RatingAndCommentServiceImpl ratingAndCommentServiceImpl;
+	
+	@Autowired
+	ServerSettingServiceImp serverSettingServiceImp;
 
 	@GetMapping("subjects")
 	public List<SubjectDTO> getHomeSubjectData() {
@@ -61,7 +66,7 @@ public class ApiControllerForAppHome {
 					dto.setSubjectLogo(commonServiceImp.buildUrlString("course", course.getLogo()));
 
 					dto.setDescription(course.getDescription());
-
+					   dto.setShowPrice(serverSettingServiceImp.getStatusById(1L));
 					// ✅ Convert price safely
 					if (course.getPrice() != null) {
 						dto.setOriginalprice(new BigDecimal(course.getPrice()));

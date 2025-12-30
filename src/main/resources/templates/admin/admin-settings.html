@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: Layout(~{::section})}">
+<body>
+
+<section class="container mt-5 pt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>
+            <i class="fa-solid fa-gears text-primary"></i>
+            Server Settings
+        </h3>
+    </div>
+
+    <!-- CREATE SETTING -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form th:action="@{/admin/settings/create}" method="post" class="row g-2">
+                <div class="col-md-4">
+                    <input name="name" class="form-control form-control-sm"
+                           placeholder="Setting Name" required>
+                </div>
+                <div class="col-md-6">
+                    <input name="description" class="form-control form-control-sm"
+                           placeholder="Description">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary btn-sm w-100">
+                        <i class="fa-solid fa-plus"></i> Add
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SETTINGS LIST -->
+    <div class="row">
+        <div class="col-md-3 mb-3" th:each="setting : ${settings}">
+            <div class="card card-sh h-100 text-center shadow-sm hover-scale p-3">
+
+                <i class="fa-solid fa-server fa-2x mb-2"
+                   th:classappend="${setting.enabled} ? ' text-success' : ' text-danger'"></i>
+
+                <h6 class="fw-bold" th:text="${setting.name}">Service</h6>
+
+                <p class="small text-muted" th:text="${setting.description}">
+                    Description
+                </p>
+
+                <span class="badge mb-2"
+                      th:id="'status-' + ${setting.id}"
+                      th:classappend="${setting.enabled} ? ' bg-success' : ' bg-danger'"
+                      th:text="${setting.enabled} ? 'Enabled' : 'Disabled'">
+                </span>
+
+                <button class="btn btn-sm"
+                        th:classappend="${setting.enabled} ? ' btn-outline-danger' : ' btn-outline-success'"
+                        th:onclick="'toggleSetting(' + ${setting.id} + ')'">
+                    <i class="fa-solid fa-power-off"></i>
+                    Toggle
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+
+
+<script>
+function toggleSetting(id) {
+    axios.post('/admin/settings/toggle/' + id)
+        .then(response => {
+            const enabled = response.data;
+            const badge = document.getElementById('status-' + id);
+
+            if (enabled) {
+                badge.className = 'badge bg-success mb-2';
+                badge.innerText = 'Enabled';
+            } else {
+                badge.className = 'badge bg-danger mb-2';
+                badge.innerText = 'Disabled';
+            }
+        })
+        .catch(() => alert('Failed to update setting'));
+}
+</script>
+</section>
+</body>
+</html>
