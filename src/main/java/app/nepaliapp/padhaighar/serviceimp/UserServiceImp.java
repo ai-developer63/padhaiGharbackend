@@ -2,6 +2,7 @@ package app.nepaliapp.padhaighar.serviceimp;
 
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -133,6 +134,7 @@ public class UserServiceImp implements UserService {
 		user.setRole("ROLE_USER");
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
 		user.setOtp("0000");
+		user.setPublicId(UUID.randomUUID().toString());
 		UserModel save = userRepository.save(user);
 
 		return save;
@@ -204,7 +206,29 @@ public class UserServiceImp implements UserService {
 	     return userRepository.findById(id)
 	             .orElseThrow(() -> new RuntimeException("User not found"));
 	 }
+	  @Override
+	  public UserModel getUserByPublicId(String publicId) {
+	      if (publicId == null || publicId.isEmpty()) {
+	          throw new IllegalArgumentException("Public ID cannot be empty");
+	      }
 
+	      // 1. Check Cache first (Extremely light-weight)
+	      String cacheKey = "publicId:" + publicId;
+	      UserModel cachedUser = userCache.get(cacheKey);
+	      if (cachedUser != null) {
+	          return cachedUser;
+	      }
+
+	      // 2. Not in cache, fetch from DB
+	      // We use Optional to avoid NullPointerExceptions
+	      UserModel user = userRepository.findByPublicId(publicId)
+	              .orElseThrow(() -> new UsernameNotFoundException("User not found with Public ID: " + publicId));
+
+	      // 3. Put in cache for future SSV callbacks
+	      userCache.put(cacheKey, user);
+
+	      return user;
+	  }
 
 
     // ----------------------------

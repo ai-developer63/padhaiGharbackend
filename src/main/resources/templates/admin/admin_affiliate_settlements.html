@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{base::Layout(~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Postpaid Agent Settlements</title>
+</head>
+<body>
+<section class="container py-5 mt-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-0"><i class="fa-solid fa-hand-holding-dollar text-success"></i> Postpaid Cash Collection</h2>
+            <p class="text-muted small">Collect cash from agents who sold courses on credit.</p>
+        </div>
+        <div class="text-end">
+            <span class="text-uppercase small fw-bold text-muted d-block">Total Unsettled Debt</span>
+            <h3 class="fw-bold text-success mb-0">Rs. <span th:text="${totalSystemReceivable}">0.0</span></h3>
+        </div>
+    </div>
+
+    <div class="alert alert-info border-0 shadow-sm d-flex align-items-center rounded-3 mb-4">
+        <i class="fa-solid fa-circle-info fa-2x me-3 text-info"></i>
+        <div>
+            <strong>How this works:</strong> Credit Agents collect 100% of the cash from the student. They keep their commission, and owe the remaining balance (Total Sale - Commission) to you. When an agent hands you the physical cash, click <b>"Mark Paid"</b> to clear their debt.
+        </div>
+    </div>
+
+    <div th:if="${succMsg}" class="alert alert-success text-center fw-bold shadow-sm" th:text="${succMsg}"></div>
+    <div th:if="${errorMsg}" class="alert alert-danger text-center fw-bold shadow-sm" th:text="${errorMsg}"></div>
+
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-nowrap">
+                    <thead class="bg-success-subtle text-success small text-uppercase">
+                        <tr>
+                            <th class="ps-4">Agent Name / ID</th>
+                            <th>Unsettled Sales Count</th>
+                            <th>Total Owed to Admin</th>
+                            <th class="text-end pe-4">Cash Receipt Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="row : ${receivables}">
+                            <td class="ps-4">
+                                <span class="fw-bold text-dark fs-5">[[${row.sellerName}]]</span>
+                                <small class="text-muted d-block">Agent ID: [[${row.sellerId}]]</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary rounded-pill px-3 py-2">
+                                    <i class="fa-solid fa-file-invoice"></i> [[${row.unsettledSalesCount}]] Approved Sales
+                                </span>
+                            </td>
+                            <td>
+                                <h4 class="fw-bold text-success mb-0">Rs. <span th:text="${row.totalOwedToAdmin}"></span></h4>
+                            </td>
+                            
+                            <td class="text-end pe-4">
+                            <form th:action="@{/admin/affiliate-settlements/collect}" method="post" 
+      th:onsubmit="|return confirm('CASH VERIFICATION: Have you successfully received Rs. ${row.totalOwedToAdmin} from this agent? This action permanently clears their debt.');|">
+    <input type="hidden" name="sellerId" th:value="${row.sellerId}">
+    <button type="submit" class="btn btn-success fw-bold px-4 shadow-sm">
+        <i class="fa-solid fa-check-double me-1"></i> Clear Debt & Mark Paid
+    </button>
+</form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(receivables)}">
+                            <td colspan="4" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-vault fa-3x mb-3 text-success opacity-50"></i><br>
+                                <h5 class="fw-bold">No Outstanding Debts!</h5>
+                                <p class="mb-0">All Postpaid Agents have fully settled their cash collections.</p>
+                            </td> 
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

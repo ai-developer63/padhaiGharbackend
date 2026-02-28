@@ -3,29 +3,66 @@
       th:replace="~{base::Layout(~{::section})}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Purchase Update</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <title>Grant Course Access</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body>
-<section>
-    <div class="container mt-4 py-5">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Grant Course Access</h5>
-            </div>
-            <div class="card-body">
-                <form th:action="@{/admin/updatePurchasedTopic}" method="post">
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Step 1: Target User ID</label>
-                        <input type="number" name="userId" id="userIdField" class="form-control" placeholder="Enter User ID" required>
-                    </div>
+<section class="container mt-4 py-5">
 
-                    <div class="mb-3 position-relative">
-                        <label class="form-label fw-bold">Step 2: Search & Select Subject</label>
+    <!-- USER SEARCH -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form th:action="@{/admin/purchases}" method="get" class="row g-3">
+                <div class="col-md-9">
+                    <label class="form-label fw-semibold">Search User (Email / Phone)</label>
+                    <input type="text"
+                           name="keyword"
+                           class="form-control"
+                           placeholder="email@example.com or 98XXXXXXXX"
+                           th:value="${keyword}"
+                           required>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-primary w-100">Search User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- USER NOT FOUND -->
+    <div th:if="${keyword != null and user == null}"
+         class="alert alert-warning text-center">
+        No user found with provided Email or Phone.
+    </div>
+
+    <!-- PURCHASE FORM -->
+    <div th:if="${user != null}" class="card shadow-sm">
+        <div class="card-body">
+            <form th:action="@{/admin/purchases/update}" method="post" class="row g-3">
+
+                <input type="hidden" name="userId" th:value="${user.id}">
+                <input type="hidden" name="subjectId" id="selectedSubjectId">
+
+                <!-- USER INFO -->
+                <div class="col-md-4">
+                    <label>User ID</label>
+                    <input class="form-control" th:value="${user.id}" readonly>
+                </div>
+
+                <div class="col-md-4">
+                    <label>Name</label>
+                    <input class="form-control" th:value="${user.name}" readonly>
+                </div>
+
+                <div class="col-md-4">
+                    <label>Email</label>
+                    <input class="form-control" th:value="${user.emailId}" readonly>
+                </div>
+
+                <!-- SUBJECT SEARCH -->
+                <div class="col-md-12 position-relative">
+                  <label class="form-label fw-bold">Search & Select Subject</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fa-solid fa-book"></i></span>
                             <input type="text" id="subjectInput" class="form-control" autocomplete="off" placeholder="Type subject name (e.g. Chemistry)...">
@@ -41,18 +78,28 @@
                                 Selected: <span id="selectedNameText">None</span>
                             </span>
                         </div>
-                    </div>
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Step 3: Duration (Days)</label>
-                        <input type="number" name="Days" class="form-control" placeholder="365" required>
-                    </div>
+                <!-- DAYS -->
+                <div class="col-md-6">
+                    <label>Total Days</label>
+                    <input type="number" name="days" class="form-control" required>
+                </div>
 
-                    <button type="submit" class="btn btn-primary w-100">Update Purchase</button>
-                </form>
-            </div>
+                <!-- WHO ACTIVATED -->
+                <div class="col-md-6">
+                    <label>Who Activated</label>
+                    <input type="text" name="whoActivated" class="form-control" required>
+                </div>
+
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-success" onclick="return validateForm()">Update Purchase</button>
+                </div>
+
+            </form>
         </div>
     </div>
+
 
 <script>
     const subjectInput = document.getElementById('subjectInput');
@@ -61,13 +108,11 @@
     const selectionBadge = document.getElementById('selectionBadge');
     const selectedNameText = document.getElementById('selectedNameText');
 
-    // 1. Define the timer variable outside the event listener
     let debounceTimer;
 
     subjectInput.addEventListener('input', function() {
         const query = this.value;
 
-        // Clear the previous timer every time the user types
         clearTimeout(debounceTimer);
 
         if (query.length < 2) {
@@ -75,10 +120,7 @@
             return;
         }
 
-        // 2. Set a new timer to wait 300ms after the last keystroke
         debounceTimer = setTimeout(() => {
-            console.log("Searching for:", query); // Debugging line
-
             axios.get(`/api/courses/search?q=${query}`)
                 .then(response => {
                     const data = response.data;
@@ -91,7 +133,7 @@
                             btn.type = 'button';
                             btn.className = 'list-group-item list-group-item-action py-2';
                             
-                            // Note: Ensure your SubjectDTO has 'subjectName' and 'categoryName'
+                            // CORRECTED: Using 'subjectName' and 'categoryName' from your JSON
                             btn.innerHTML = `
                                 <div class="d-flex justify-content-between align-items-center">
                                     <strong>${item.subjectName}</strong>
@@ -100,8 +142,8 @@
                             `;
                             
                             btn.onclick = () => {
-                                // Make sure 'item.id' or the primary key is present in your DTO
-                                selectSubject(item.id, item.subjectName);
+                                // CORRECTED: Using 'subjectId' and 'subjectName' from your JSON
+                                selectSubject(item.subjectId, item.subjectName);
                             };
                             searchResults.appendChild(btn);
                         });
@@ -113,23 +155,20 @@
                     console.error("Search error:", err);
                     searchResults.classList.add('d-none');
                 });
-        }, 300); // 300 milliseconds delay
+        }, 300);
     });
 
     function selectSubject(id, name) {
-        // Set the hidden ID field for form submission
+        // This sets the value that the @RequestParam("courseId") expects
         selectedIdField.value = id;
         
-        // Update UI
         selectedNameText.innerText = name;
         subjectInput.value = name; 
         
-        // Hide dropdown and show the "Selected" badge
         searchResults.classList.add('d-none');
         selectionBadge.classList.remove('d-none');
     }
 
-    // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
         if (!subjectInput.contains(e.target) && !searchResults.contains(e.target)) {
             searchResults.classList.add('d-none');

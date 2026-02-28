@@ -1,6 +1,7 @@
 package app.nepaliapp.padhaighar.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,7 @@ public interface UserRepository extends JpaRepository<UserModel, Long> {
 	UserModel findByEmailId(String emailId);
 	UserModel findByPhoneNumber(String phoneNumber);
 	Boolean existsByEmailId(String email);
+	Optional<UserModel> findByPublicId(String publicId);
 	Boolean existsByPhoneNumber(String phoneNumber);
 	@Transactional
 	@Modifying
@@ -37,4 +39,8 @@ public interface UserRepository extends JpaRepository<UserModel, Long> {
 			        @Param("refer") String refer,
 			        Pageable pageable
 			);
+	
+	// Add this inside app.nepaliapp.padhaighar.repository.UserRepository
+	@Query("SELECT COALESCE(SUM(u.walletBalance), 0.0) FROM UserModel u WHERE u.sellerType = 'PREPAID'")
+	Double sumAllPrepaidWalletBalances();
 }

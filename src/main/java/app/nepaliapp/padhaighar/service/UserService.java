@@ -20,4 +20,5 @@ public interface UserService {
 	 UserModel getUserById(Long id);
 	 UserModel getTeacherById(Long id);
 	 String getUserName(Long id);
+	 UserModel getUserByPublicId(String publicId);
 }

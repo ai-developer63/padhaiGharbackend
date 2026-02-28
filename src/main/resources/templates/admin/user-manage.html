@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-	th:replace="~{base::Layout(~{::section})}">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{base::Layout(~{::section})}">
 <head>
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<title>User Promotion</title>
 </head>
 <body>
 <section class="container mt-5 pt-4">
@@ -14,49 +13,46 @@
             User Promotion Panel
         </h4>
 
-        <!-- Search Box -->
         <div class="input-group mb-3">
-            <input id="searchInput" type="text" class="form-control"
-                   placeholder="Search by Phone or Email">
+            <input id="searchInput" type="text" class="form-control" placeholder="Search by Phone or Email">
             <button class="btn btn-primary" id="searchBtn">
-                <i class="fa fa-search"></i>
+                <i class="fa fa-search"></i> Search
             </button>
         </div>
-<div id="notification" class="alert d-none" role="alert"></div>
+        
+        <div id="notification" class="alert d-none" role="alert"></div>
 
-        <!-- Result Box -->
         <div id="resultBox" class="d-none">
 
             <div class="alert alert-success" id="userInfo"></div>
 
-            <h5>Change User Role</h5>
+            <h5 class="mt-4 mb-3 border-bottom pb-2">Assign Access Level</h5>
 
-            <div class="btn-group mt-2">
-                <button class="btn btn-outline-primary role-btn" data-role="ROLE_TEACHER">
-                    Make Teacher
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-outline-primary role-btn" data-role="ROLE_TEACHER" data-seller="NONE">
+                    <i class="fa-solid fa-chalkboard-user"></i> Make Teacher
                 </button>
-                <button class="btn btn-outline-success role-btn" data-role="ROLE_AFFILIATE">
-                    Make Affiliate
+                <button class="btn btn-outline-warning role-btn fw-bold" data-role="ROLE_USER" data-seller="PREPAID">
+                    <i class="fa-solid fa-wallet"></i> Make Prepaid Seller
                 </button>
-                <button class="btn btn-outline-secondary role-btn" data-role="ROLE_USER">
-                    Make Normal User
+                <button class="btn btn-outline-success role-btn" data-role="ROLE_AFFILIATE" data-seller="POSTPAID">
+                    <i class="fa-solid fa-link"></i> Make Affiliate (Postpaid)
+                </button>
+                <button class="btn btn-outline-secondary role-btn" data-role="ROLE_USER" data-seller="NONE">
+                    <i class="fa-solid fa-user"></i> Make Normal User
                 </button>
             </div>
 
         </div>
-
     </div>
-
-
 
 <script>
 function showNotification(message, type = 'success') {
     const notif = document.getElementById("notification");
-    notif.className = `alert alert-${type} mt-2`; // type: success, danger, warning, info
+    notif.className = `alert alert-${type} mt-2`; 
     notif.innerText = message;
     notif.classList.remove("d-none");
 
-    // Auto-hide after 3 seconds
     setTimeout(() => {
         notif.classList.add("d-none");
     }, 3000);
@@ -72,24 +68,39 @@ document.getElementById("searchBtn").addEventListener("click", async () => {
         let user = res.data;
 
         document.getElementById("resultBox").classList.remove("d-none");
+        
+        // Updated to also show the Seller Type enum
         document.getElementById("userInfo").innerHTML =
-                `<b>Name:</b> ${user.name}<br>
-                 <b>Email:</b> ${user.emailId}<br>
-                 <b>Phone:</b> ${user.phoneNumber}<br>
-                 <b>Current Role:</b> <span class="text-primary">${user.role}</span>`;
+                `<div class="row">
+                    <div class="col-md-6">
+                        <b>Name:</b> ${user.name}<br>
+                        <b>Email:</b> ${user.emailId}<br>
+                        <b>Phone:</b> ${user.phoneNumber}
+                    </div>
+                    <div class="col-md-6 border-start">
+                        <b>System Role:</b> <span class="badge bg-primary">${user.role}</span><br>
+                        <b class="mt-2 d-inline-block">Seller Type:</b> <span class="badge bg-success">${user.sellerType != null ? user.sellerType : 'NONE'}</span><br>
+                        <b class="mt-2 d-inline-block">Wallet Balance:</b> <span class="fw-bold text-dark">Rs. ${user.walletBalance != null ? user.walletBalance : '0.0'}</span>
+                    </div>
+                </div>`;
 
         document.querySelectorAll(".role-btn").forEach(btn => {
             btn.onclick = async () => {
                 try {
+                    // We now pass BOTH role and sellerType to the backend
                     let updateRes = await axios.post("/admin/update-role", null, {
-                        params: { id: user.id, role: btn.dataset.role }
+                        params: { 
+                            id: user.id, 
+                            role: btn.dataset.role,
+                            sellerType: btn.dataset.seller 
+                        }
                     });
 
                     if (updateRes.data === "ooo Admin is immortal") {
                         showNotification("Admin role cannot be changed!", "warning");
                     } else {
-                        showNotification("Role Updated Successfully!", "success");
-                        document.getElementById("searchBtn").click(); // Refresh UI
+                        showNotification("User access updated successfully!", "success");
+                        document.getElementById("searchBtn").click(); // Refresh UI to see new status
                     }
 
                 } catch (err) {
@@ -100,6 +111,7 @@ document.getElementById("searchBtn").addEventListener("click", async () => {
 
     } catch (e) {
         showNotification("User not found!", "danger");
+        document.getElementById("resultBox").classList.add("d-none");
     }
 });
 </script>

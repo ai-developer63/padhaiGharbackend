@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{base::Layout(~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Master Sales Ledger</title>
+</head>
+<body>
+<section class="container-fluid py-5 mt-5 px-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Sales & Revenue Analytics</h2>
+            <p class="text-muted small">Real-time ledger and reversal engine.</p>
+        </div>
+        <span class="badge bg-secondary rounded-pill"><i class="fa-solid fa-lock"></i> 7-Day Reversal Policy Active</span>
+    </div>
+
+    <div th:if="${succMsg}" class="alert alert-success text-center fw-bold" th:text="${succMsg}"></div>
+    <div th:if="${errorMsg}" class="alert alert-danger text-center fw-bold" th:text="${errorMsg}"></div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4 p-4 text-center h-100 bg-primary text-white">
+                <h6 class="text-uppercase small fw-bold opacity-75">Total App Earning (Net)</h6>
+                <h2 class="fw-bold mb-0">Rs. <span th:text="${appEarning}"></span></h2>
+                <small class="opacity-75">Your final cut after commissions</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4 p-4 text-center h-100 bg-light">
+                <h6 class="text-muted text-uppercase small fw-bold">Gross Sales Volume</h6>
+                <h2 class="fw-bold text-dark mb-0">Rs. <span th:text="${totalVolume}"></span></h2>
+                <small class="text-muted">Total money moved</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4 p-4 text-center h-100 bg-light">
+                <h6 class="text-muted text-uppercase small fw-bold">Successful Transactions</h6>
+                <h2 class="fw-bold text-success mb-0"><span th:text="${activeSalesCount}"></span></h2>
+                <small class="text-muted">Excludes reversed sales</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4 border-0 rounded-4">
+        <div class="card-body py-4 bg-light rounded-4">
+            <form id="filterForm" th:action="@{/admin/sales}" method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted">Keyword Search</label>
+                    <input type="text" name="keyword" class="form-control" placeholder="Txn ID, User Name, Subject..." th:value="${keyword}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted">Start Date</label>
+                    <input type="date" id="startDate" name="startDate" class="form-control" th:value="${startDate}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted">End Date</label>
+                    <input type="date" id="endDate" name="endDate" class="form-control" th:value="${endDate}">
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1 fw-bold"><i class="fa-solid fa-filter"></i> Apply Filter</button>
+                    <a href="/admin/sales" class="btn btn-outline-secondary fw-bold"><i class="fa-solid fa-rotate-right"></i> Reset</a>
+                </div>
+            </form>
+            
+            <div class="mt-3 d-flex gap-2">
+                <span class="small fw-bold text-muted me-2 align-self-center">Quick Select:</span>
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="setQuickDate('today')">Today</button>
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="setQuickDate('month')">This Month</button>
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="setQuickDate('year')">This Year</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4 border-0 rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-nowrap">
+                    <thead class="bg-white text-muted small text-uppercase">
+                        <tr>
+                            <th class="ps-4 py-3">Txn ID / Date</th>
+                            <th>Subject</th>
+                            <th>Buyer</th>
+                            <th>Seller / Affiliate</th>
+                            <th>Type</th>
+                            <th>Total (Rs)</th>
+                            <th class="text-success">App Cut</th>
+                            <th class="text-primary">Seller Cut</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="sale : ${salesPage.content}" th:classappend="${sale.isReversed} ? 'table-danger text-muted' : ''">
+                            <td class="ps-4">
+                                <span class="fw-bold text-dark d-block" th:text="${sale.transactionId}"></span>
+                                <small th:text="${#temporals.format(sale.createdAt, 'dd MMM yyyy HH:mm')}"></small>
+                            </td>
+                            <td><span class="badge bg-light text-dark border" th:text="${sale.subjectName}"></span></td>
+                            
+                            <td>
+                                <span class="fw-semibold d-block" th:text="${sale.buyerName}"></span>
+                                <small>ID: <span th:text="${sale.buyerId}"></span></small>
+                            </td>
+                            
+                            <td>
+                                <div th:if="${sale.sellerId != null and sale.sellerId > 0}">
+                                    <span class="fw-bold text-primary d-block" th:text="${sale.sellerName != null ? sale.sellerName : 'Unknown (Old Record)'}"></span>
+                                    <small>ID: <span th:text="${sale.sellerId}"></span></small>
+                                </div>
+                                <div th:if="${sale.sellerId == null or sale.sellerId == 0}">
+                                    <span class="badge bg-light text-muted border">System / Organic</span>
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="badge" 
+                                      th:classappend="${sale.saleType.name() == 'PREPAID_SELLER'} ? 'bg-primary' : (${sale.saleType.name() == 'ORGANIC'} ? 'bg-success' : 'bg-warning text-dark')"
+                                      th:text="${sale.saleType}"></span>
+                            </td>
+                            <td class="fw-bold">Rs. <span th:text="${sale.totalAmountPaid}"></span></td>
+                            <td class="fw-bold text-success">Rs. <span th:text="${sale.appCut}"></span></td>
+                            <td class="text-primary">Rs. <span th:text="${sale.sellerCut}"></span></td>
+                            
+                            <td>
+                                <span th:if="${!sale.isReversed}" class="badge bg-success-subtle text-success border border-success"><i class="fa-solid fa-check"></i> Valid</span>
+                                <span th:if="${sale.isReversed}" class="badge bg-danger-subtle text-danger border border-danger"><i class="fa-solid fa-rotate-left"></i> Reversed</span>
+                            </td>
+                            
+                            <td class="text-end pe-4">
+                                <form th:if="${!sale.isReversed}" th:action="@{/admin/sales/reverse}" method="post" onsubmit="return confirm('Reverse this sale? The buyer will lose access and the seller will be refunded (if within 7 days).');">
+                                    <input type="hidden" name="salesId" th:value="${sale.id}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fa-solid fa-rotate-left"></i> Reverse
+                                    </button>
+                                </form>
+                                <span th:if="${sale.isReversed}" class="text-danger small fw-bold">Cancelled</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${salesPage.empty}">
+                            <td colspan="10" class="text-center py-5 text-muted"><i class="fa-solid fa-box-open fa-2x mb-2 opacity-50"></i><br>No sales found for this filter.</td> 
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <nav th:if="${salesPage.totalPages > 1}" aria-label="Page navigation">
+        <ul class="pagination justify-content-end mb-5 pe-4">
+            <li class="page-item" th:classappend="${salesPage.first ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{''(page=${salesPage.number - 1}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate})}">Prev</a>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link bg-light text-dark fw-bold">Page <span th:text="${salesPage.number + 1}"></span> of <span th:text="${salesPage.totalPages}"></span></span>
+            </li>
+            <li class="page-item" th:classappend="${salesPage.last ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{''(page=${salesPage.number + 1}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate})}">Next</a>
+            </li>
+        </ul>
+    </nav>
+
+<script>
+    // Quick Date Selector Logic
+    function setQuickDate(type) {
+        const today = new Date();
+        const startInput = document.getElementById('startDate');
+        const endInput = document.getElementById('endDate');
+        
+        let start, end;
+
+        if (type === 'today') {
+            start = end = today.toISOString().split('T')[0];
+        } else if (type === 'month') {
+            start = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+            end = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+        } else if (type === 'year') {
+            start = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+            end = new Date(today.getFullYear(), 11, 31).toISOString().split('T')[0];
+        }
+
+        startInput.value = start;
+        endInput.value = end;
+        
+        // Auto submit the form
+        document.getElementById('filterForm').submit();
+    }
+</script>
+
+</section>
+</body>
+</html>

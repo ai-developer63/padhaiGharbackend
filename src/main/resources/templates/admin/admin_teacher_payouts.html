@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{base::Layout(~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Teacher Settlements</title>
+</head>
+<body>
+<section class="container py-5 mt-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-0"><i class="fa-solid fa-file-invoice-dollar text-danger"></i> Teacher Payout Ledger</h2>
+            <p class="text-muted small">Manage and settle unpaid teacher commissions.</p>
+        </div>
+        <div class="text-end">
+            <span class="text-uppercase small fw-bold text-muted d-block">Total Unpaid Debt</span>
+            <h3 class="fw-bold text-danger mb-0">Rs. <span th:text="${totalSystemDebt}">0.0</span></h3>
+        </div>
+    </div>
+
+    <div th:if="${succMsg}" class="alert alert-success text-center fw-bold" th:text="${succMsg}"></div>
+    <div th:if="${errorMsg}" class="alert alert-danger text-center fw-bold" th:text="${errorMsg}"></div>
+
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-nowrap">
+                    <thead class="bg-danger-subtle text-danger small text-uppercase">
+                        <tr>
+                            <th class="ps-4">Teacher Name</th>
+                            <th>Unpaid Sales Count</th>
+                            <th>Total Amount Owed</th>
+                            <th class="text-end pe-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="payout : ${payouts}">
+                            <td class="ps-4">
+                                <span class="fw-bold text-dark fs-5"><i class="fa-solid fa-chalkboard-user"></i> [[${payout.teacherName}]]</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary rounded-pill px-3" th:text="${payout.unpaidSalesCount} + ' Sales'"></span>
+                            </td>
+                            <td>
+                                <h5 class="fw-bold text-danger mb-0">Rs. <span th:text="${payout.totalOwed}"></span></h5>
+                            </td>
+                            
+                            <td class="text-end pe-4">
+                                <form th:action="@{/admin/teacher-payouts/settle}" method="post" 
+                                      onsubmit="return confirm('WARNING: Are you sure you transferred this money to the teacher\'s bank account? This will permanently reset their balance to zero.');">
+                                    <input type="hidden" name="teacherName" th:value="${payout.teacherName}">
+                                    <button type="submit" class="btn btn-danger fw-bold shadow-sm">
+                                        <i class="fa-solid fa-money-bill-transfer"></i> Mark as Paid
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(payouts)}">
+                            <td colspan="4" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-check-double fa-3x mb-3 text-success opacity-50"></i><br>
+                                <h5 class="fw-bold">All Teachers are Fully Paid!</h5>
+                                <p class="mb-0">There are no pending liabilities.</p>
+                            </td> 
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</section>
+</body>
+</html>

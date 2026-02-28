@@ -51,6 +51,8 @@ dependencies {
     
     //Doc of the project
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+    //  LINE FOR FIREBASE:
+    implementation 'com.google.firebase:firebase-admin:9.2.0'
     
 }
 

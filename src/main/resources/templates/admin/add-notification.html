@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: Layout(~{::section})}">
+<head>
+    <title>Create Notification</title>
+</head>
+<body>
+
+<section>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            
+            <div class="col-lg-7 mb-4">
+                <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                    <div class="card-header bg-primary text-white p-4">
+                        <h4 class="mb-0 fw-bold"><i class="fa-solid fa-paper-plane me-2"></i> Broadcast Notification</h4>
+                        <p class="small text-white-50 mb-0">Configure targeting, rich media, and actions</p>
+                    </div>
+                    
+                    <div class="card-body p-4 bg-light">
+                        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                            <i class="fa-solid fa-check-circle me-2"></i> <span th:text="${success}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                            <i class="fa-solid fa-triangle-exclamation me-2"></i> <span th:text="${error}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+
+                        <form th:action="@{/admin/notifications/save}" th:object="${notification}" method="post" enctype="multipart/form-data">
+                            
+                            <h6 class="text-primary fw-bold text-uppercase mb-3"><i class="fa-solid fa-pen-nib"></i> Content & Media</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Title</label>
+                                <input type="text" class="form-control" th:field="*{title}" id="notifTitle" placeholder="e.g., Special Offer!" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Message Body</label>
+                                <textarea class="form-control" th:field="*{message}" id="notifMessage" rows="3" placeholder="Enter your notification text here..." required></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Rich Media (Optional)</label>
+                                <input type="file" name="imageFile" class="form-control" id="imageInput" accept="image/*">
+                                <small class="text-muted">Upload an image to show inside the notification.</small>
+                            </div>
+
+                            <div class="row g-2">
+                                <div class="col-md-5">
+                                    <label class="form-label fw-bold">Button Text</label>
+                                    <input type="text" class="form-control" th:field="*{buttonLabel}" id="btnLabelInput" placeholder="e.g. Open Now">
+                                </div>
+                                <div class="col-md-7">
+                                    <label class="form-label fw-bold">Action URL</label>
+                                    <input type="text" class="form-control" th:field="*{actionUrl}" placeholder="e.g., /courses/math/12">
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <h6 class="text-primary fw-bold text-uppercase mb-3"><i class="fa-solid fa-crosshairs"></i> Logic & Targeting</h6>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Target Audience</label>
+                                    <select class="form-select" th:field="*{targetType}" id="targetTypeSelect" onchange="toggleTargetField()">
+                                        <option th:each="type : ${targetTypes}" th:value="${type}" th:text="${type}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Priority</label>
+                                    <select class="form-select" th:field="*{priority}" id="prioritySelect" onchange="toggleRepeatField()">
+                                        <option th:each="p : ${priorities}" th:value="${p}" th:text="${p}"></option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 bg-white p-3 rounded border border-warning" id="specificUserField" style="display: none;">
+                                <label class="form-label fw-bold text-warning"><i class="fa-solid fa-user"></i> Enter User ID</label>
+                                <input type="number" class="form-control" th:field="*{specificUserId}" placeholder="User ID (e.g., 101)">
+                            </div>
+
+                            <div class="mt-3 bg-white p-3 rounded border border-danger" id="repeatField" style="display: none;">
+                                <label class="form-label fw-bold text-danger"><i class="fa-solid fa-rotate-right"></i> Repeat Interval (Hours)</label>
+                                <input type="number" class="form-control" th:field="*{repeatAfterHours}" placeholder="e.g., 24">
+                            </div>
+
+                            <hr class="my-4">
+
+                            <h6 class="text-primary fw-bold text-uppercase mb-3"><i class="fa-solid fa-filter"></i> Smart Conditions</h6>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Condition Type</label>
+                                    <select class="form-select" th:field="*{conditionType}" id="conditionTypeSelect" onchange="toggleConditionValue()">
+                                        <option th:each="c : ${conditionTypes}" th:value="${c}" th:text="${c}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6" id="conditionValueField" style="display: none;">
+                                    <label class="form-label fw-bold">Value (Days/Amount)</label>
+                                    <input type="text" class="form-control" th:field="*{conditionValue}" placeholder="e.g., 7">
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <label class="form-label fw-bold">Expires At</label>
+                                <input type="datetime-local" class="form-control" th:field="*{expiresAt}">
+                            </div>
+
+                            <div class="mt-4 d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg shadow-glow rounded-pill fw-bold">
+                                    <i class="fa-solid fa-paper-plane"></i> Broadcast Now
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="sticky-top" style="top: 100px;">
+                    <h6 class="text-muted fw-bold text-uppercase text-center mb-3">Live Mobile Preview</h6>
+                    
+                    <div class="mx-auto bg-white border border-3 border-dark rounded-4 shadow-lg position-relative" style="width: 300px; height: 550px; overflow: hidden; border-radius: 30px !important;">
+                        <div class="position-absolute top-0 start-50 translate-middle-x bg-dark rounded-bottom" style="width: 120px; height: 25px; z-index: 10;"></div>
+                        
+                        <div class="p-3 pt-5 h-100 bg-light d-flex flex-column justify-content-center">
+                            
+                            <div class="card shadow-sm border-0 animate__animated animate__fadeInDown overflow-hidden">
+                                
+                                <img id="previewImageDisplay" src="" class="card-img-top" style="display: none; max-height: 150px; object-fit: cover;">
+                                
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                            <i class="fa-solid fa-bell small"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block" style="font-size: 10px;">Padhai Ghar • Now</small>
+                                            <strong class="d-block text-dark lh-1" id="previewTitle" style="font-size: 14px;">Notification Title</strong>
+                                        </div>
+                                    </div>
+                                    <p class="text-muted mb-2 small lh-sm" id="previewMessage">
+                                        Your message will appear here...
+                                    </p>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-primary w-100 py-1" id="previewBtn" style="font-size: 11px;">Open</button>
+                                        <button class="btn btn-sm btn-outline-secondary w-100 py-1" style="font-size: 11px;">Dismiss</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <small class="text-muted"><i class="fa-solid fa-info-circle"></i> Image & Buttons update live.</small>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // 1. Text Inputs Preview
+        const titleInput = document.getElementById('notifTitle');
+        const msgInput = document.getElementById('notifMessage');
+        const btnLabelInput = document.getElementById('btnLabelInput');
+        
+        const prevTitle = document.getElementById('previewTitle');
+        const prevMsg = document.getElementById('previewMessage');
+        const prevBtn = document.getElementById('previewBtn');
+
+        titleInput.addEventListener('input', (e) => prevTitle.textContent = e.target.value || 'Notification Title');
+        msgInput.addEventListener('input', (e) => prevMsg.textContent = e.target.value || 'Your message will appear here...');
+        btnLabelInput.addEventListener('input', (e) => prevBtn.textContent = e.target.value || 'Open');
+
+        // 2. Image Preview Logic (FileReader)
+        const imageInput = document.getElementById('imageInput');
+        const previewImg = document.getElementById('previewImageDisplay');
+
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                previewImg.style.display = 'none';
+            }
+        });
+
+        // 3. Toggle Logic (Target/Priority/Condition)
+        function toggleTargetField() {
+            const val = document.getElementById('targetTypeSelect').value;
+            document.getElementById('specificUserField').style.display = (val === 'SPECIFIC_USER') ? 'block' : 'none';
+        }
+
+        function toggleRepeatField() {
+            const val = document.getElementById('prioritySelect').value;
+            document.getElementById('repeatField').style.display = (val === 'HIGH') ? 'block' : 'none';
+        }
+
+        function toggleConditionValue() {
+            const val = document.getElementById('conditionTypeSelect').value;
+            const field = document.getElementById('conditionValueField');
+            if (val === 'NONE' || val === 'SIGNUP_TODAY') {
+                field.style.display = 'none';
+            } else {
+                field.style.display = 'block';
+            }
+        }
+
+        // Initialize
+        window.onload = function() {
+            toggleTargetField();
+            toggleRepeatField();
+            toggleConditionValue();
+        };
+    </script>
+</section>
+
+</body>
+</html>

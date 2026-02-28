@@ -51,21 +51,31 @@ public class UserAdminController {
         return userService.getUserByPhoneorEmail(query);
     }
 
-    // API: Update role
+ // API: Update role and seller type
     @PostMapping("/update-role")
     @ResponseBody
     public String updateRole(@RequestParam("id") Long id,
-                             @RequestParam("role") String role) {
-    	UserModel user = userService.getUserById(id);
-    	String role2 = user.getRole();
-    	if (role2.equals("ROLE_ADMIN")) {
-			return"ooo Admin is immortal";
-		}else {
-    	 user.setRole(role);
-        userService.updateUser(user);
-        return "success";
-		}
-		}
+                             @RequestParam("role") String role,
+                             @RequestParam("sellerType") String sellerTypeStr) {
+        
+        UserModel user = userService.getUserById(id);
+        
+        if (user.getRole().equals("ROLE_ADMIN")) {
+            return "ooo Admin is immortal";
+        } else {
+            user.setRole(role);
+            
+            // Convert string to the Enum we created in Phase 1
+            try {
+                user.setSellerType(app.nepaliapp.padhaighar.enums.SellerType.valueOf(sellerTypeStr));
+            } catch (Exception e) {
+                user.setSellerType(app.nepaliapp.padhaighar.enums.SellerType.NONE);
+            }
+            
+            userService.updateUser(user);
+            return "success";
+        }
+    }
 	
 	
 	

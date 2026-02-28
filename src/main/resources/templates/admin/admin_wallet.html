@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{base::Layout(~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Prepaid Wallet Manager</title>
+</head>
+<body>
+<section class="container mt-4 py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-4">
+        <h2 class="fw-bold text-dark">Wallet Recharge</h2>
+        <span class="badge bg-success rounded-pill">Prepaid Accounts</span>
+    </div>
+
+    <div th:if="${succMsg}" class="alert alert-success text-center fw-bold" th:text="${succMsg}"></div>
+    <div th:if="${errorMsg}" class="alert alert-danger text-center fw-bold" th:text="${errorMsg}"></div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form th:action="@{/admin/wallet}" method="get" class="row g-3">
+                <div class="col-md-9">
+                    <label class="form-label fw-semibold">Search Prepaid Seller (Email / Phone)</label>
+                    <input type="text" name="keyword" class="form-control" placeholder="Search..." th:value="${keyword}" required>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-primary w-100"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${user != null}" class="card shadow-sm border-success">
+        <div class="card-body text-center p-5">
+            <i class="fa-solid fa-wallet fa-4x text-success mb-3"></i>
+            <h3 class="fw-bold" id="userNameText" th:text="${user.name}"></h3>
+            <p class="text-muted" th:text="${user.emailId}"></p>
+            
+            <div class="bg-light p-3 rounded d-inline-block mb-4">
+                <span class="text-uppercase fw-bold text-muted small">Current Balance</span>
+                <h2 class="text-dark mb-0">Rs. <span th:text="${user.walletBalance}"></span></h2>
+            </div>
+
+            <form id="rechargeForm" th:action="@{/admin/wallet/recharge}" method="post" class="row justify-content-center">
+                <input type="hidden" name="userId" th:value="${user.id}">
+                <div class="col-md-6">
+                    <div class="input-group mb-3 shadow-sm">
+                        <span class="input-group-text bg-success text-white fw-bold">Rs.</span>
+                        <input type="number" id="rechargeAmount" name="amount" class="form-control form-control-lg fw-bold text-success" placeholder="Amount to add..." required>
+                        <button type="button" onclick="confirmRecharge(event)" class="btn btn-success btn-lg fw-bold"><i class="fa-solid fa-bolt"></i> Recharge Account</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<script>
+    function confirmRecharge(event) {
+        event.preventDefault(); // Stop the form from submitting instantly
+        
+        const form = document.getElementById('rechargeForm');
+        const amount = document.getElementById('rechargeAmount').value;
+        const userName = document.getElementById('userNameText').innerText;
+
+        // 1. Basic empty check
+        if (!amount || amount <= 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Invalid Amount',
+                text: 'Please enter a valid amount greater than 0.'
+            });
+            return;
+        }
+
+        // 2. High-Friction Double Confirmation Modal
+        Swal.fire({
+            title: 'Irreversible Action!',
+            html: `You are about to add <b class="text-success fs-4">Rs. ${amount}</b> to <b class="text-primary">${userName}</b>.<br><br>
+                   <div class="alert alert-danger mt-2 border-danger text-start">
+                       <i class="fa-solid fa-triangle-exclamation"></i> <b>WARNING:</b> There is no reversal of this process. This will permanently alter the ledger data entries.
+                   </div>
+                   <p class="mb-1 text-muted small fw-bold text-uppercase">Type CONFIRM below to proceed</p>`,
+            icon: 'warning',
+            input: 'text',
+            inputPlaceholder: 'Type CONFIRM',
+            showCancelButton: true,
+            confirmButtonColor: '#198754', // Bootstrap Success Green
+            cancelButtonColor: '#d33',     // Bootstrap Danger Red
+            confirmButtonText: '<i class="fa-solid fa-check-double"></i> Process Recharge',
+            cancelButtonText: 'Cancel',
+            
+            // 3. Validation rule: They MUST type "CONFIRM" exactly
+            preConfirm: (inputValue) => {
+                if (inputValue !== 'CONFIRM') {
+                    Swal.showValidationMessage('Verification failed. You must type exactly CONFIRM to proceed.');
+                    return false;
+                }
+                return true;
+            }
+        }).then((result) => {
+            // 4. If they successfully typed it and clicked process, submit the form!
+            if (result.isConfirmed) {
+                // Optional: Show a quick loading spinner while the server processes
+                Swal.fire({
+                    title: 'Processing Transaction...',
+                    text: 'Please wait while the ledger is updated.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                form.submit();
+            }
+        });
+    }
+</script>
+
+</section>
+</body>
+</html>

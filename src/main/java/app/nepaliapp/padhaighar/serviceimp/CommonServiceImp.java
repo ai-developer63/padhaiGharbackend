@@ -24,6 +24,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import app.nepaliapp.padhaighar.config.JwtUtil;
+import app.nepaliapp.padhaighar.model.UserModel;
 import app.nepaliapp.padhaighar.service.CommonService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -33,9 +35,33 @@ public class CommonServiceImp implements CommonService {
 
 	@Autowired
 	private JavaMailSender mailSender;
+	
+	@Autowired
+	UserServiceImp userServiceImp;
 
 	@Value("${upload_location}")
 	private String uploadLocation;
+	
+	
+	@Override
+    public Model modelForAuth(Model model, boolean isAdmin) {
+        Boolean isLoggedIn = checkIsloggedin();
+        model.addAttribute("isLoggedIn", isLoggedIn);
+        model.addAttribute("isAdmin", isAdmin);
+        return model;
+    }
+	@Override
+    public String generateFileUrl(String folder, String fileName) {
+        if (fileName == null || fileName.isEmpty()) {
+            return null;
+        }
+
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
+                .scheme("https")
+                .pathSegment(folder)  // Automatically adds / and handles encoding
+                .pathSegment(fileName)
+                .toUriString();
+    }
 
 	// Update file (delete old + upload new)
 	@Override
@@ -165,5 +191,15 @@ public class CommonServiceImp implements CommonService {
 		return ServletUriComponentsBuilder.fromCurrentContextPath().scheme("https") // auto force https
 				.path("/").path(folderPath.endsWith("/") ? folderPath : folderPath + "/").path(fileName).toUriString();
 	}
+
+
+	 @Override
+		public UserModel getUserByToken(String token) {
+			String pureToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+			String username = JwtUtil.extractUsername(pureToken);
+			UserModel user = userServiceImp.getUserByPhoneorEmail(username);
+			return user;
+
+		}
 
 }

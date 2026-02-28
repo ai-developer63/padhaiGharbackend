@@ -5,6 +5,8 @@ import java.io.IOException;
 import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
 
+import app.nepaliapp.padhaighar.model.UserModel;
+
 public interface CommonService {
 
 	public void removeSessionMessage();
@@ -18,6 +20,9 @@ public interface CommonService {
 	String uploadFile(String folder, MultipartFile file) throws IOException;
 	boolean deleteFile(String folder, String fileName);
 	String updateFile(String folder, MultipartFile newFile, String oldFile) throws IOException;
+	Model modelForAuth(Model model, boolean isAdmin);
+	UserModel getUserByToken(String token);
+	String generateFileUrl(String folder, String fileName);
 	
 	
 }

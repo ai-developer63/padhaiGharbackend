@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{base::Layout(~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Coupons</title>
+</head>
+<body>
+<section class="container py-5 mt-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark">Promo & Coupons</h2>
+        <span class="badge bg-danger rounded-pill px-3 py-2"><i class="fa-solid fa-tags"></i> Marketing Engine</span>
+    </div>
+
+    <div th:if="${succMsg}" class="alert alert-success text-center fw-bold" th:text="${succMsg}"></div>
+    <div th:if="${errorMsg}" class="alert alert-danger text-center fw-bold" th:text="${errorMsg}"></div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-danger text-white py-3 rounded-top-4 text-center">
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-plus-circle"></i> Create New Code</h6>
+                </div>
+                <div class="card-body bg-light p-4">
+                    <form th:action="@{/admin/coupons/add}" method="post">
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Coupon Code</label>
+                            <input type="text" name="code" class="form-control" required style="text-transform: uppercase;">
+                        </div>
+                        
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-muted">Discount (%)</label>
+                                <input type="number" step="0.1" name="discountPercentage" class="form-control" required max="100">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-muted">Max Uses</label>
+                                <input type="number" name="maxUses" class="form-control" placeholder="Infinite">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Expiry Date</label>
+                            <input type="date" name="expiryDate" class="form-control">
+                        </div>
+                        
+                        <div class="mb-4 position-relative">
+                            <label class="form-label small fw-bold text-muted">Restrict to Subject</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-primary"></i></span>
+                                <input type="text" id="subjectInput" class="form-control" autocomplete="off" placeholder="Search subject...">
+                            </div>
+                            
+                            <div id="searchResults" class="list-group position-absolute w-100 shadow-lg d-none" style="z-index: 1050; max-height: 200px; overflow-y: auto;"></div>
+                            
+                            <input type="hidden" name="specificCourseId" id="selectedCourseId" value="0">
+                            
+                            <small id="globalBadge" class="text-primary fw-bold mt-2 d-block"><i class="fa-solid fa-globe"></i> Applies to ALL subjects</small>
+                            
+                            <div id="selectionBadge" class="mt-2 d-none justify-content-between align-items-center bg-white border border-success p-2 rounded">
+                                <span class="text-success fw-bold small"><i class="fa-solid fa-check-circle"></i> <span id="selectedNameText">None</span></span>
+                                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="resetSubjectSelection()">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger w-100 fw-bold"><i class="fa-solid fa-save"></i> Save Coupon</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-dark border-bottom pb-3 mb-3"><i class="fa-solid fa-list-check text-danger"></i> Active Promo Codes</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-white text-muted small text-uppercase">
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Discount</th>
+                                    <th>Restriction</th>
+                                    <th>Usage</th>
+                                    <th>Expiry</th>
+                                    <th class="text-end">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="coupon : ${coupons}">
+                                    <td class="fw-bold text-danger" th:text="${coupon.code}"></td>
+                                    <td class="fw-bold"><span th:text="${coupon.discountPercentage}"></span>% OFF</td>
+                                    <td>
+                                        <span th:if="${coupon.specificCourseId == null}" class="badge bg-primary">Global</span>
+                                        <span th:if="${coupon.specificCourseId != null}" class="badge bg-secondary" th:text="${coupon.specificCourseName}"></span>
+                                    </td>
+                                    <td class="small text-muted">
+                                        <span th:text="${coupon.currentUses}"></span> / <span th:text="${coupon.maxUses != null ? coupon.maxUses : '∞'}"></span>
+                                    </td>
+                                    <td class="small" th:text="${coupon.expiryDate != null ? coupon.expiryDate : 'Never'}"></td>
+                                    <td class="text-end">
+                                        <form th:action="@{/admin/coupons/toggle}" method="post">
+                                            <input type="hidden" name="id" th:value="${coupon.id}">
+                                            <button type="submit" class="btn btn-sm" th:classappend="${coupon.isActive ? 'btn-success' : 'btn-outline-secondary'}">
+                                                <i class="fa-solid" th:classappend="${coupon.isActive ? 'fa-toggle-on' : 'fa-toggle-off'}"></i>
+                                                <span th:text="${coupon.isActive ? 'Active' : 'Disabled'}"></span>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const subjectInput = document.getElementById('subjectInput');
+            const searchResults = document.getElementById('searchResults');
+            const selectedIdField = document.getElementById('selectedCourseId');
+            const selectionBadge = document.getElementById('selectionBadge');
+            const selectedNameText = document.getElementById('selectedNameText');
+            const globalBadge = document.getElementById('globalBadge');
+            let debounceTimer;
+
+            if(!subjectInput) return;
+
+            subjectInput.addEventListener('input', function() {
+                const query = this.value;
+                clearTimeout(debounceTimer);
+
+                if (query.length < 2) {
+                    searchResults.classList.add('d-none');
+                    return;
+                }
+
+                debounceTimer = setTimeout(() => {
+                    axios.get(`/search/courses?q=${encodeURIComponent(query)}`)
+                        .then(response => {
+                            const data = response.data;
+                            searchResults.innerHTML = '';
+
+                            if (data && data.length > 0) {
+                                searchResults.classList.remove('d-none');
+                                data.forEach(item => {
+                                    const btn = document.createElement('button');
+                                    btn.type = 'button';
+                                    btn.className = 'list-group-item list-group-item-action py-2';
+                                    btn.innerHTML = `
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <strong>${item.subjectName}</strong>
+                                            <span class="badge bg-light text-dark border">${item.categoryName || 'Course'}</span>
+                                        </div>
+                                    `;
+                                    btn.onclick = () => { selectSubject(item.subjectId, item.subjectName); };
+                                    searchResults.appendChild(btn);
+                                });
+                            } else {
+                                searchResults.classList.add('d-none');
+                            }
+                        })
+                        .catch(err => console.error("Search error:", err));
+                }, 300);
+            });
+
+            window.selectSubject = function(id, name) {
+                selectedIdField.value = id;
+                selectedNameText.innerText = name;
+                subjectInput.value = name; 
+                searchResults.classList.add('d-none');
+                if(globalBadge) globalBadge.classList.add('d-none');
+                if(selectionBadge) {
+                    selectionBadge.classList.remove('d-none');
+                    selectionBadge.classList.add('d-flex');
+                }
+                subjectInput.readOnly = true; 
+            };
+
+            window.resetSubjectSelection = function() {
+                selectedIdField.value = '0';
+                subjectInput.value = '';
+                subjectInput.readOnly = false; 
+                if(selectionBadge) {
+                    selectionBadge.classList.add('d-none');
+                    selectionBadge.classList.remove('d-flex');
+                }
+                if(globalBadge) globalBadge.classList.remove('d-none');
+            };
+
+            document.addEventListener('click', (e) => {
+                if (subjectInput && !subjectInput.contains(e.target) && searchResults && !searchResults.contains(e.target)) {
+                    searchResults.classList.add('d-none');
+                }
+            });
+        });
+    </script>
+</section>
+</body>
+</html>

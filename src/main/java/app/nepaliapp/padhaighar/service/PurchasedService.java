@@ -5,5 +5,6 @@ import java.util.List;
 public interface PurchasedService {
     PurchasedUserModel savePurchase(PurchasedUserModel purchase);
     List<PurchasedUserModel> getPurchasesByUserId(Long userId);
+    void revokeAccessBySalesId(Long salesId);
 }
 

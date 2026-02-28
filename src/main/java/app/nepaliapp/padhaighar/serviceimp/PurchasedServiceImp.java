@@ -12,7 +12,10 @@ public class PurchasedServiceImp implements PurchasedService {
 
     @Autowired
     private PurchasedRepository purchasedRepository;
-
+    @Override
+    public void revokeAccessBySalesId(Long salesId) {
+        purchasedRepository.deleteBySalesId(salesId);
+    }
     @Override
     public PurchasedUserModel savePurchase(PurchasedUserModel purchase) {
         return purchasedRepository.save(purchase);

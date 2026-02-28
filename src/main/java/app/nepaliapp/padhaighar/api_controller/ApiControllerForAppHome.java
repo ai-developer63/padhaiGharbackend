@@ -1,10 +1,15 @@
 package app.nepaliapp.padhaighar.api_controller;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import app.nepaliapp.padhaighar.api_model.SubjectDTO;
@@ -12,7 +17,7 @@ import app.nepaliapp.padhaighar.api_model.SubjectDTO;
 import app.nepaliapp.padhaighar.model.BannerModel;
 import app.nepaliapp.padhaighar.model.CategoryModel;
 import app.nepaliapp.padhaighar.model.CourseModel;
-import app.nepaliapp.padhaighar.model.ServerSettingModel;
+import app.nepaliapp.padhaighar.model.UserModel;
 import app.nepaliapp.padhaighar.model.dto.BannerDTO;
 import app.nepaliapp.padhaighar.model.dto.CategoryDTO;
 import app.nepaliapp.padhaighar.model.dto.HomeResponseDTO;
@@ -112,7 +117,17 @@ public class ApiControllerForAppHome {
 		response.setCategory(categoryDTOs);
 		return response;
 	}
-
+	@GetMapping("publicId")
+	public ResponseEntity<?> getUserPublicId(@RequestHeader("Authorization") String token){
+	     UserModel user1 = commonServiceImp.getUserByToken(token);
+	        if (user1 == null) {
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Token");
+	        }
+	        Map<String, Object> publicId = new HashMap<>();
+		publicId.put("userId", user1.getPublicId());
+		return ResponseEntity.ok(publicId);
+	}
+	
 
 
 }

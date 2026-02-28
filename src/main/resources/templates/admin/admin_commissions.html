@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{base::Layout(~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Commissions</title>
+</head>
+<body>
+<section class="container py-5 mt-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark">Commission Setup</h2>
+        <span class="badge bg-primary rounded-pill">Financial Engine</span>
+    </div>
+
+    <div th:if="${succMsg}" class="alert alert-success text-center fw-bold" th:text="${succMsg}"></div>
+    <div th:if="${errorMsg}" class="alert alert-danger text-center fw-bold" th:text="${errorMsg}"></div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form th:action="@{/admin/commissions}" method="get" class="row g-3">
+                <div class="col-md-10">
+                    <input type="text" name="keyword" class="form-control" placeholder="Search subject name..." th:value="${keyword}">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100"><i class="fa-solid fa-search"></i> Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Subject Name</th>
+                            <th>Current Price</th>
+                            <th>App %</th>
+                            <th>Teacher %</th>
+                            <th>Affiliate %</th>
+                            <th class="text-end pe-4">Status / Action</th>
+                        </tr>
+                    </thead>
+                   <tbody>
+                        <tr th:each="course : ${coursePage.content}" th:with="rule=${rulesMap[course.id]}">
+                            <td class="ps-4 fw-bold text-dark" th:text="${course.name}"></td>
+                            <td th:text="${course.Price != null ? course.Price : 'Free'}"></td>
+                            
+                            <td>
+                                <input type="number" step="0.1" name="appPercentage" class="form-control form-control-sm percentage-input" 
+                                       th:value="${rule != null ? rule.appPercentage : 100.0}" 
+                                       th:form="'form-' + ${course.id}" required>
+                            </td>
+                            <td>
+                                <input type="number" step="0.1" name="teacherPercentage" class="form-control form-control-sm percentage-input" 
+                                       th:value="${rule != null ? rule.teacherPercentage : 0.0}" 
+                                       th:form="'form-' + ${course.id}" required>
+                            </td>
+                            <td>
+                                <input type="number" step="0.1" name="affiliatePercentage" class="form-control form-control-sm percentage-input" 
+                                       th:value="${rule != null ? rule.affiliatePercentage : 0.0}" 
+                                       th:form="'form-' + ${course.id}" required>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex flex-column align-items-end">
+                                    <span class="math-hint small fw-bold mb-1"></span>
+                                    <form th:id="'form-' + ${course.id}" th:action="@{/admin/commissions/update}" method="post">
+                                        <input type="hidden" name="subjectId" th:value="${course.id}">
+                                        <input type="hidden" name="subjectName" th:value="${course.name}">
+                                        <button type="submit" class="btn btn-sm btn-success save-btn px-3">Save</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${coursePage.empty}">
+                            <td colspan="6" class="text-center py-4 text-muted">No subjects found.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card-footer bg-white border-top-0 py-3" th:if="${coursePage.totalPages > 1}">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-end mb-0">
+                        <li class="page-item" th:classappend="${coursePage.first ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{''(page=${coursePage.number - 1}, keyword=${keyword})}">Previous</a>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link bg-light text-dark fw-bold">Page <span th:text="${coursePage.number + 1}"></span> of <span th:text="${coursePage.totalPages}"></span></span>
+                        </li>
+                        <li class="page-item" th:classappend="${coursePage.last ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{''(page=${coursePage.number + 1}, keyword=${keyword})}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const tableBody = document.querySelector('tbody');
+            if (!tableBody) return;
+
+            // Function to run the math for a single row
+            function updateRowMath(row) {
+                const inputs = row.querySelectorAll('.percentage-input');
+                if (inputs.length !== 3) return; // Ignore empty rows
+
+                // Grab the numbers, default to 0 if input is blank
+                const app = parseFloat(inputs[0].value) || 0;
+                const teacher = parseFloat(inputs[1].value) || 0;
+                const affiliate = parseFloat(inputs[2].value) || 0;
+                
+                // Calculate sum (rounding to 1 decimal place to prevent floating point bugs)
+                const sum = Math.round((app + teacher + affiliate) * 10) / 10; 
+                const remaining = Math.round((100 - sum) * 10) / 10;
+
+                const hintSpan = row.querySelector('.math-hint');
+                const saveBtn = row.querySelector('.save-btn');
+
+                if (sum === 100) {
+                    hintSpan.textContent = "Perfect! (100%)";
+                    hintSpan.className = "math-hint small fw-bold mb-1 text-success";
+                    saveBtn.disabled = false; // Enable save
+                } else if (sum < 100) {
+                    hintSpan.textContent = remaining + "% Remaining";
+                    hintSpan.className = "math-hint small fw-bold mb-1 text-warning";
+                    saveBtn.disabled = true; // Block save
+                } else {
+                    hintSpan.textContent = "Exceeds by " + Math.abs(remaining) + "%";
+                    hintSpan.className = "math-hint small fw-bold mb-1 text-danger";
+                    saveBtn.disabled = true; // Block save
+                }
+            }
+
+            // 1. Run the math on all rows immediately when the page loads
+            const rows = tableBody.querySelectorAll('tr');
+            rows.forEach(row => updateRowMath(row));
+
+            // 2. Listen for any typing inside the table and run math instantly
+            tableBody.addEventListener('input', function(e) {
+                if (e.target.classList.contains('percentage-input')) {
+                    const row = e.target.closest('tr');
+                    updateRowMath(row);
+                }
+            });
+        });
+    </script>
+</section>
+</body>
+</html>

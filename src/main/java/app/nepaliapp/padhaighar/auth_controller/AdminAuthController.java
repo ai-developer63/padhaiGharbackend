@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import app.nepaliapp.padhaighar.model.UserModel;
+import app.nepaliapp.padhaighar.repository.SalesRecordRepository;
 import app.nepaliapp.padhaighar.repository.UserRepository;
 import app.nepaliapp.padhaighar.serviceimp.CommonServiceImp;
 import app.nepaliapp.padhaighar.serviceimp.UserServiceImp;
@@ -49,24 +50,41 @@ public class AdminAuthController {
 	@Autowired
 	PasswordEncoder passwordEncoder;
 	
+	@Autowired
+	SalesRecordRepository salesRepo;
+	
 //	@Autowired
 //	PurchaseRequestRepository purchaseRequestRepository;
 
 	
 	@GetMapping("/admin")
-	public String adminPage(Model model) {
-		model.addAttribute("isAdmin", true);
-		 long totalUsers = userRepository.count();
-	        long totalNepaliUsers = userRepository.countBycountry("Nepal");
-	        long pendingPurchaseRequests = 15;
-	        model.addAttribute("totalUsers", totalUsers);
-	        model.addAttribute("totalNepaliUsers", totalNepaliUsers);
-	        model.addAttribute("pendingPurchaseRequests", pendingPurchaseRequests);
-	       
-		IsLoggedInProof(model);
-		return "admin/dashboard";
-	}
+    public String adminDashboard(Model model) {
+        
+        // 1. Pending Credit Sales Count
+        long pendingCredits = salesRepo.countByIsCreditPendingTrue();
+        
+        // 2. Unpaid Teacher Commissions
+        Double unpaidTeachersRaw = salesRepo.sumUnpaidTeacherCuts();
+        double unpaidTeachers = unpaidTeachersRaw != null ? unpaidTeachersRaw : 0.0;
+        
+        // 3. Prepaid Wallet Balances (Total system liability to partners)
+        Double prepaidWalletsRaw = userRepository.sumAllPrepaidWalletBalances();
+        double prepaidWallets = prepaidWalletsRaw != null ? prepaidWalletsRaw : 0.0;
+        
+        // 4. Affiliate Receivables (Cash owed TO the Admin)
+        Double affiliateReceivablesRaw = salesRepo.sumTotalAffiliateReceivables();
+        double affiliateReceivables = affiliateReceivablesRaw != null ? affiliateReceivablesRaw : 0.0;
 
+        // Push to view
+        model.addAttribute("pendingCredits", pendingCredits);
+        model.addAttribute("unpaidTeachers", unpaidTeachers);
+        model.addAttribute("prepaidWallets", prepaidWallets);
+        model.addAttribute("affiliateReceivables", affiliateReceivables);
+        
+        commonServiceImp.modelForAuth(model);
+        
+        return "admin/dashboard"; 
+    }
 	
 	@PostMapping("/changePassword")
 	public String changePassword(@RequestParam("newPassword") String newPassword, HttpSession session,
@@ -77,7 +95,7 @@ public class AdminAuthController {
 		if (email == null) {
 			redirectAttributes.addFlashAttribute("errorMsg", "Session expired. Please start forgot password again.");
 			return "redirect:/forgetpassword";
-		}
+		}  
 
 		// Find user
 		UserModel user = userRepository.findByEmailId(email);
@@ -222,8 +240,8 @@ public class AdminAuthController {
 
 	@GetMapping({"/", "/index"})
 	public String index(Model model) {
-		Boolean isLoggedIn = commonServiceImp.checkIsloggedin();
-		model.addAttribute("isLoggedIn", isLoggedIn);
+		// Boolean isLoggedIn = commonServiceImp.checkIsloggedin(); <-- DELETE
+		// model.addAttribute("isLoggedIn", isLoggedIn); <-- DELETE
 		return "index";
 	}
 //
@@ -281,6 +299,7 @@ public class AdminAuthController {
 
 	}
 
+	@SuppressWarnings("unused")
 	private Model IsLoggedInProof(Model model) {
 		Boolean isLoggedIn = commonServiceImp.checkIsloggedin();
 		model.addAttribute("isLoggedIn", isLoggedIn);

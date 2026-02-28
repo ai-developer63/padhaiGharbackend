@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{base::Layout(~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Teacher Portal</title>
+</head>
+<body>
+
+<section class="container py-5 mt-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Welcome, <span th:text="${teacherName}">Teacher</span>!</h2>
+            <p class="text-muted">Manage your subjects and track your earnings.</p>
+        </div>
+        <span class="badge bg-success rounded-pill px-3 py-2"><i class="fa-solid fa-circle-check me-1"></i> Verified Instructor</span>
+    </div>
+
+    <h5 class="fw-bold text-dark mt-5 mb-3"><i class="fa-solid fa-chart-pie text-secondary me-2"></i> Financial Performance</h5>
+    <div class="row g-4 mb-5">
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4 p-4 h-100 card-hover bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-uppercase small fw-bold mb-0 opacity-75">Lifetime Earnings</h6>
+                    <i class="fa-solid fa-coins fa-2x opacity-50"></i>
+                </div>
+                <h2 class="fw-bold mb-0">Rs. <span th:text="${lifetimeEarnings}">0.0</span></h2>
+                <small class="opacity-75 mt-2 d-block">Total revenue generated to date</small>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4 p-4 h-100 card-hover bg-danger-subtle">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-danger text-uppercase small fw-bold mb-0">Unpaid Balance</h6>
+                    <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 45px; height: 45px;">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-danger mb-0">Rs. <span th:text="${unpaidBalance}">0.0</span></h2>
+                <small class="text-danger opacity-75 fw-semibold mt-2">Awaiting Admin Settlement</small>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4 p-4 h-100 card-hover bg-light">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-muted text-uppercase small fw-bold mb-0">Total Students</h6>
+                    <div class="bg-white border rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 45px; height: 45px;">
+                        <i class="fa-solid fa-graduation-cap text-primary"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-dark mb-0" th:text="${totalStudents}">0</h2>
+                <small class="text-muted mt-2 d-block">Active learners in your courses</small>
+            </div>
+        </div>
+
+    </div>
+
+    <h5 class="text-muted border-bottom pb-2 mb-4">Classroom Management</h5>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <a href="/teacher/courses" class="text-decoration-none">
+                <div class="card card-sh h-100 text-center shadow-sm hover-scale p-4 border-bottom border-primary border-4">
+                    <div class="icon-box bg-light-primary">
+                        <i class="fa-solid fa-book fa-2x text-primary"></i>
+                    </div>
+                    <h6 class="fw-bold text-dark">My Courses</h6>
+                    <p class="small text-muted mb-0">Update content & materials</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            <a href="/teacher/students" class="text-decoration-none">
+                <div class="card card-sh h-100 text-center shadow-sm hover-scale p-4 border-bottom border-success border-4">
+                    <div class="icon-box bg-light-success">
+                        <i class="fa-solid fa-users-viewfinder fa-2x text-success"></i>
+                    </div>
+                    <h6 class="fw-bold text-dark">Student List</h6>
+                    <p class="small text-muted mb-0">View all enrolled students</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            <a href="/teacher/earnings" class="text-decoration-none">
+                <div class="card card-sh h-100 text-center shadow-sm hover-scale p-4 border-bottom border-warning border-4">
+                    <div class="icon-box bg-light-warning">
+                        <i class="fa-solid fa-file-invoice-dollar fa-2x text-warning"></i>
+                    </div>
+                    <h6 class="fw-bold text-dark">Sale Reports</h6>
+                    <p class="small text-muted mb-0">Itemized commission history</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            <a href="/user/profile" class="text-decoration-none">
+                <div class="card card-sh h-100 text-center shadow-sm hover-scale p-4 border-bottom border-danger border-4">
+                    <div class="icon-box bg-light-danger">
+                        <i class="fa-solid fa-id-card fa-2x text-danger"></i>
+                    </div>
+                    <h6 class="fw-bold text-dark">Public Profile</h6>
+                    <p class="small text-muted mb-0">Manage your bio & photo</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <style>
+        .card-sh { border: none; border-radius: 12px; transition: all 0.3s ease; background: #fff; }
+        .hover-scale:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+        .icon-box { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin: 0 auto 15px auto; }
+        .bg-light-primary { background-color: rgba(13, 110, 253, 0.1); }
+        .bg-light-success { background-color: rgba(25, 135, 84, 0.1); }
+        .bg-light-warning { background-color: rgba(255, 193, 7, 0.1); }
+        .bg-light-danger { background-color: rgba(220, 53, 69, 0.1); }
+        .card-hover { transition: transform 0.2s; cursor: pointer; }
+        .card-hover:hover { transform: scale(1.02); }
+    </style>
+</section>
+
+</body>
+</html>

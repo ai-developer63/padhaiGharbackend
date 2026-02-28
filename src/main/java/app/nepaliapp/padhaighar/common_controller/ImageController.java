@@ -20,7 +20,44 @@ public class ImageController {
 	FileSharingServiceImp fileServingServiceImp;
 	
 	
-	
+	@GetMapping("notificationimage/{filename:.+}")
+	public ResponseEntity<Resource> notificationIcon(@PathVariable("filename") String filename) {
+	    try {
+	        Resource resource = fileServingServiceImp.getFile("notifications",filename);
+	        String contentType;
+	        try {
+	            contentType = Files.probeContentType(resource.getFile().toPath());
+	        } catch (IOException ex) {
+	            contentType = null;
+	        }
+
+	        if (contentType == null) {
+	            String name = resource.getFilename().toLowerCase();
+	            if (name.endsWith(".png")) {
+	                contentType = "image/png";
+	            } else if (name.endsWith(".jpg") || name.endsWith(".jpeg")) {
+	                contentType = "image/jpeg";
+	            } else if (name.endsWith(".gif")) {
+	                contentType = "image/gif";
+	            } else if (name.endsWith(".svg")) {
+	                contentType = "image/svg+xml";
+	            } else if (name.endsWith(".webp")) {
+	                contentType = "image/webp";
+	            } else {
+	                contentType = "application/octet-stream"; // fallback for unknowns
+	            }
+	        }
+
+
+	        return ResponseEntity.ok()
+	                .contentType(MediaType.parseMediaType(contentType))
+	                .body(resource);
+
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+	    }
+	}
 	
 	@GetMapping("/course/{filename}")
 	public ResponseEntity<Resource> ServeCourseThumnail(@PathVariable("filename") String filename) {

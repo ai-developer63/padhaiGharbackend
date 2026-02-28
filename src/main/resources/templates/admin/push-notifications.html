@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: Layout(~{::section})}">
+<body>
+<section class="container mt-5 pt-5">
+    <div class="row">
+        <div class="col-12 mb-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-black text-gradient mb-0"><i class="fa-solid fa-tower-broadcast"></i> Notification Command Center</h2>
+                <p class="text-muted">Manage real-time engagement for Padhai Ghar users.</p>
+            </div>
+            <div class="badge bg-primary p-2 px-3 shadow-sm">
+                <span th:text="${devicePage.totalElements}">0</span> Registered Devices
+            </div>
+        </div>
+
+        <div class="col-lg-5 mb-4">
+            <div class="card border-0 shadow-sm p-4 mb-4 border-start border-primary border-4">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-user-tag text-primary"></i> Direct Message</h5>
+                <form id="pushForm">
+                    <input type="number" id="targetUserId" class="form-control mb-3" placeholder="Target User ID" required />
+                    <input type="text" id="notifTitle" class="form-control mb-3" placeholder="Title..." required />
+                    <textarea id="notifBody" class="form-control mb-3" rows="3" placeholder="Message content..." required></textarea>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Send Direct Push</button>
+                </form>
+            </div>
+
+            <div class="card border-0 shadow-glow p-4 bg-dark text-white">
+                <h5 class="fw-bold mb-1 text-warning"><i class="fa-solid fa-bullhorn"></i> Global Broadcast</h5>
+                <p class="small opacity-75 mb-3">Reaches all 5,000+ users instantly via FCM Topics.</p>
+                <form id="broadcastForm">
+                    <input type="text" id="bcTitle" class="form-control bg-secondary border-0 text-white mb-2" placeholder="Urgent: New Content Available!">
+                    <textarea id="bcBody" class="form-control bg-secondary border-0 text-white mb-3" rows="3" placeholder="Click here to join the live notice..."></textarea>
+                    <button type="button" onclick="sendGlobalPush()" class="btn btn-warning w-100 fw-bold">Blaster: Send to All</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm p-4">
+                <h5 class="fw-bold mb-3">Registered Device Registry</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover small">
+                        <thead class="table-light">
+                            <tr>
+                                <th>User ID</th>
+                                <th>Device Token (Truncated)</th>
+                                <th>Last Seen</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="device : ${devicePage.content}">
+                                <td class="fw-bold" th:text="${device.userId}"></td>
+                                <td class="text-muted text-truncate" style="max-width: 150px;" th:text="${device.fcmToken}"></td>
+                                <td th:text="${#temporals.format(device.lastUpdated, 'MMM dd, HH:mm')}"></td>
+                                <td>
+                                    <button class="btn btn-sm btn-link text-primary p-0" th:onclick="'selectUser(' + ${device.userId} + ')'">Select</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <nav aria-label="Page navigation" th:if="${totalPages > 1}">
+                    <ul class="pagination pagination-sm justify-content-center mt-3">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/admin/notifications/push(page=${currentPage - 1})}">Previous</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/admin/notifications/push(page=${i})}" th:text="${i + 1}"></a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/admin/notifications/push(page=${currentPage + 1})}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <script>
+        function selectUser(id) {
+            document.getElementById('targetUserId').value = id;
+            Swal.fire({ icon: 'info', title: 'User Selected', text: 'Targeting User ID: ' + id, timer: 1000 });
+        }
+
+        // Handle Direct Push
+        document.getElementById('pushForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const btn = e.submitter;
+            btn.disabled = true;
+            try {
+                await axios.post(`/api/notifications/send?userId=${document.getElementById('targetUserId').value}&title=${document.getElementById('notifTitle').value}&body=${document.getElementById('notifBody').value}`);
+                Swal.fire('Sent!', 'Message delivered to user device.', 'success');
+                this.reset();
+            } catch (err) { Swal.fire('Error', 'Could not reach user.', 'error'); }
+            btn.disabled = false;
+        };
+
+        // Handle Global Broadcast (Topic)
+        async function sendGlobalPush() {
+            const title = document.getElementById('bcTitle').value;
+            const body = document.getElementById('bcBody').value;
+            if(!title || !body) return Swal.fire('Wait', 'Both title and body are required for broadcast!', 'warning');
+            
+            Swal.fire({
+                title: 'Confirm Broadcast?',
+                text: "You are about to notify ALL registered users.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ffc107',
+                confirmButtonText: 'Yes, Blast it!'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await axios.post(`/api/notifications/broadcast?title=${title}&body=${body}`);
+                        Swal.fire('Broadcast Success', 'Google is distributing the message.', 'success');
+                    } catch (e) { Swal.fire('Fail', 'Topic broadcast failed.', 'error'); }
+                }
+            });
+        }
+    </script>
+</section>
+</body>
+</html>

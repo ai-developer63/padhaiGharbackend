@@ -155,6 +155,7 @@ public class ApiControllerForCourses {
         // Convert to DTO
         return results.stream().map(course -> {
             SubjectDTO dto = new SubjectDTO();
+            dto.setSubjectId(course.getId());
             dto.setSubjectName(course.getName());
             dto.setCategoryName(course.getCategoryName());
             dto.setTeacherName(course.getTeacherName());
